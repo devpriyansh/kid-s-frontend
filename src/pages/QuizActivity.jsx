@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { useKid } from '../contexts/KidContext';
 import ConfettiEffect from '../components/common/ConfettiEffect';
 import Mascot from '../components/common/Mascot';
+import { useReward } from '../contexts/RewardContext';
+import FunLoader from '../components/common/FunLoader';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://kid-s-backend.onrender.com/api/v1';
 
@@ -45,7 +47,7 @@ const QuizActivity = () => {
     fetchQuiz();
   }, [quizId, selectedKid, navigate]);
 
-  if (loading) return <div className="text-center py-20 text-2xl">Loading magical quiz...</div>;
+  if (loading) return <FunLoader message="Loading magical quiz..." />;
   if (!quiz) return <div className="text-center py-20 text-2xl">Quiz not found! 😢</div>;
 
   const questions = quiz.questions || [];

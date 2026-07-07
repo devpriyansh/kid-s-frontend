@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useKid } from '../contexts/KidContext';
 import ConfettiEffect from '../components/common/ConfettiEffect';
+import FunLoader from '../components/common/FunLoader';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://kid-s-backend.onrender.com/api/v1';
 
@@ -159,7 +160,7 @@ const PuzzleGame = () => {
     }
   };
 
-  if (!quiz) return <div className="text-center py-20 text-2xl font-bold">Loading Puzzle...</div>;
+  if (!quiz) return <FunLoader message="Loading Puzzle..." />;
 
   const bgSize = `${gridSize * 100}% ${gridSize * 100}%`;
   

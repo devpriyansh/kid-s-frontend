@@ -4,12 +4,13 @@ import { motion } from 'framer-motion';
 import { useDashboard } from '../../hooks/useKids';
 import ChildCard from '../../components/parent/ChildCard';
 import ProgressChart from '../../components/parent/ProgressChart';
+import FunLoader from '../../components/common/FunLoader';
 
 const ParentDashboard = () => {
   const { data = { kids: [], recentActivities: [] }, isLoading } = useDashboard();
   const { kids, recentActivities } = data;
 
-  if (isLoading) return <div className="text-center py-10 text-2xl">Loading dashboard...</div>;
+  if (isLoading) return <FunLoader message="Loading dashboard..." />;
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useKid } from '../contexts/KidContext';
-import ConfettiEffect from '../components/common/ConfettiEffect';
+import { ConfettiEffect } from '../components/common/ConfettiEffect';
+import FunLoader from '../components/common/FunLoader';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://kid-s-backend.onrender.com/api/v1';
 
@@ -161,7 +162,7 @@ const LetterBuilder = () => {
     } catch (err) {}
   };
 
-  if (!quiz || !letterData) return <div className="text-center py-20 text-2xl font-bold">Loading...</div>;
+  if (!quiz || !letterData) return <FunLoader message="Loading Letter Builder..." />;
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-[100dvh] overflow-hidden flex flex-col max-w-4xl mx-auto p-4">

@@ -21,6 +21,8 @@ import ShadowMatch from './pages/ShadowMatch';
 import NumberFishing from './pages/NumberFishing';
 import StoryBuilder from './pages/StoryBuilder';
 import AITutorPage from './pages/AITutorPage';
+import WakeUpLoader from './components/common/WakeUpLoader';
+import FunLoader from './components/common/FunLoader';
 
 // Lazy load pages
 const Landing = lazy(() => import('./pages/Landing'))
@@ -41,8 +43,9 @@ function App() {
       <KidProvider>
         <RewardProvider>
           <ClassProvider>
-          <Suspense fallback={<div className="flex items-center justify-center h-screen text-2xl font-bold text-kid-purple">🌟 Loading...</div>}>
-            <Routes>
+            <WakeUpLoader>
+              <Suspense fallback={<div className="flex items-center justify-center h-screen w-full"><FunLoader message="Loading..." /></div>}>
+                <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
@@ -75,9 +78,10 @@ function App() {
                 </Route>
               </Route>
                             
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-          </Suspense>
+                <Route path="*" element={<Navigate to="/" />} />
+              </Routes>
+            </Suspense>
+            </WakeUpLoader>
           </ClassProvider>
         </RewardProvider>
       </KidProvider>
