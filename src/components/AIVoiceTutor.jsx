@@ -8,9 +8,12 @@ const AIVoiceTutor = ({ systemPrompt }) => {
   const [messages, setMessages] = useState([]);
   const [error, setError] = useState(null);
   const [needsApiKey, setNeedsApiKey] = useState(false);
+  const [isCheckingKey, setIsCheckingKey] = useState(true);
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [isSavingKey, setIsSavingKey] = useState(false);
   const [successMessage, setSuccessMessage] = useState(null);
+  
+  const accumulatedTranscriptRef = useRef('');
 
   const handleSaveApiKey = async () => {
     setIsSavingKey(true);
@@ -46,23 +49,57 @@ const AIVoiceTutor = ({ systemPrompt }) => {
   const synthesisRef = useRef(window.speechSynthesis);
   const chatContainerRef = useRef(null);
 
+  // Check API Key Status on Mount
+  useEffect(() => {
+    const checkApiKey = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setIsCheckingKey(false);
+          return;
+        }
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://kid-s-backend.onrender.com/api/v1';
+        const res = await fetch(`${API_BASE_URL}/user/api-key-status`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (!data.data?.result?.hasApiKey) {
+            setNeedsApiKey(true);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to check API key status");
+      } finally {
+        setIsCheckingKey(false);
+      }
+    };
+    checkApiKey();
+  }, []);
+
   // Initialize Speech Recognition
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
       recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
+      recognitionRef.current.continuous = true;
       recognitionRef.current.interimResults = false;
       recognitionRef.current.lang = 'en-US';
 
       recognitionRef.current.onstart = () => {
         setIsListening(true);
         setError(null);
+        accumulatedTranscriptRef.current = '';
       };
 
-      recognitionRef.current.onresult = async (event) => {
-        const transcript = event.results[0][0].transcript;
-        handleUserMessage(transcript);
+      recognitionRef.current.onresult = (event) => {
+        let currentTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            currentTranscript += event.results[i][0].transcript + ' ';
+          }
+        }
+        accumulatedTranscriptRef.current += currentTranscript;
       };
 
       recognitionRef.current.onerror = (event) => {
@@ -75,6 +112,11 @@ const AIVoiceTutor = ({ systemPrompt }) => {
 
       recognitionRef.current.onend = () => {
         setIsListening(false);
+        const finalTranscript = accumulatedTranscriptRef.current.trim();
+        if (finalTranscript) {
+          handleUserMessage(finalTranscript);
+          accumulatedTranscriptRef.current = '';
+        }
       };
     } else {
       setError("Speech recognition is not supported in this browser. Try Chrome!");
@@ -126,11 +168,12 @@ const AIVoiceTutor = ({ systemPrompt }) => {
 
       if (!response.ok) {
         const errStr = JSON.stringify(data.errors || data.message || data);
-        if (errStr.includes("API_KEY_MISSING") || errStr.includes("API_KEY_INVALID") || errStr.includes("API_KEY_INVALID")) {
+        if (errStr.includes("API_KEY_MISSING") || errStr.includes("API_KEY_INVALID")) {
           setNeedsApiKey(true);
           throw new Error("No API key found or key is invalid. Please enter your Gemini API Key below.");
-        } else if (errStr.includes("GEMINI_API_ERROR")) {
-          throw new Error("AI Error: Limit reached or invalid key.");
+        } else if (errStr.includes("GEMINI_API_ERROR") || errStr.includes("429")) {
+          setNeedsApiKey(true);
+          throw new Error("Limit reached. Please buy or create a new API key.");
         }
         throw new Error(data.message || "Failed to reach AI tutor.");
       }
@@ -261,7 +304,11 @@ const AIVoiceTutor = ({ systemPrompt }) => {
 
       {/* Chat History */}
       <div ref={chatContainerRef} className="flex-1 min-h-0 overflow-y-auto hide-scrollbar bg-white/40 rounded-2xl p-4 mb-4 shadow-inner border-2 border-white flex flex-col gap-3 z-10">
-        {needsApiKey ? (
+        {isCheckingKey ? (
+          <div className="h-full flex items-center justify-center text-center opacity-50">
+            <p className="font-bold text-lg text-gray-500">Waking up Hootie... 🦉</p>
+          </div>
+        ) : needsApiKey ? (
           <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
             <p className="font-bold text-lg text-gray-800">You need an API Key to talk to Hootie!</p>
             <p className="text-sm text-gray-600 max-w-sm">
@@ -328,7 +375,7 @@ const AIVoiceTutor = ({ systemPrompt }) => {
         >
           {isListening ? (
             <>
-              <span className="text-3xl">🛑</span> Stop Listening
+              <span className="text-3xl">🛑</span> Send / Stop
             </>
           ) : (
             <>
