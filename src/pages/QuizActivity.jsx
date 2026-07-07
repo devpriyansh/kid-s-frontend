@@ -5,7 +5,7 @@ import { useKid } from '../contexts/KidContext';
 import ConfettiEffect from '../components/common/ConfettiEffect';
 import Mascot from '../components/common/Mascot';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://kid-s-backend.onrender.com/api/v1';
 
 const QuizActivity = () => {
   const { quizId } = useParams();

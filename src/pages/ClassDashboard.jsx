@@ -26,7 +26,7 @@ const ClassDashboard = () => {
     const fetchQuizzes = async () => {
       try {
         const token = localStorage.getItem('token');
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1';
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://kid-s-backend.onrender.com/api/v1';
         const res = await fetch(`${API_BASE_URL}/quiz/list/${selectedKid?.age || 'nursery'}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });

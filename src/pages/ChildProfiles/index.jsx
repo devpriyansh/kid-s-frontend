@@ -27,7 +27,7 @@ const handleSelect = (kid) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1';
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://kid-s-backend.onrender.com/api/v1';
       const token = localStorage.getItem('token');
       
       const response = await fetch(`${API_BASE_URL}/child/add`, {
