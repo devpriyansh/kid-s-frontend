@@ -135,7 +135,7 @@ const AIVoiceTutor = ({ systemPrompt }) => {
         throw new Error(data.message || "Failed to reach AI tutor.");
       }
 
-      const aiText = data.data?.reply || data.result?.reply;
+      const aiText = data.data?.result?.reply || data.data?.reply || data.result?.reply;
       
       if (!aiText) throw new Error("No response from AI");
 
