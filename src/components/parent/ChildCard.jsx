@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import Avatar from '../common/Avatar';
 import ProgressRing from '../common/ProgressRing';
 import { getClass } from '../../data/curriculum';
+import { Star, GraduationCap } from 'lucide-react';
 
 const ChildCard = ({ kid }) => {
   const progress = useMemo(() => {
@@ -29,14 +30,26 @@ const ChildCard = ({ kid }) => {
   }, [kid]);
 
   return (
-    <motion.div whileHover={{ scale: 1.02 }} className="glass-card p-6 flex items-center gap-4">
-      <Avatar emoji={kid.avatar} size="medium" />
-      <div className="flex-1">
-        <h3 className="text-xl font-fredoka font-bold">{kid.name}</h3>
-        <p className="text-gray-600">Age: {kid.age || 'KG1'} • ⭐ {kid.stars} stars</p>
-        <div className="flex items-center gap-2 mt-2">
-          <ProgressRing progress={progress} />
-          <span className="text-sm text-gray-500">Level {kid.level || 1}</span>
+    <motion.div whileHover={{ scale: 1.02, y: -2 }} className="glass-card p-6 flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left relative overflow-hidden group border border-white/60 bg-white/40 backdrop-blur-md">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-kid-primary/20 rounded-full blur-3xl group-hover:bg-kid-primary/30 transition-colors pointer-events-none"></div>
+      
+      <div className="relative z-10 p-2 bg-white/60 rounded-[2rem] shadow-inner border border-white/80">
+        <Avatar emoji={kid.avatar} size="medium" />
+      </div>
+      
+      <div className="flex-1 relative z-10 space-y-2">
+        <h3 className="text-2xl font-baloo font-black text-kid-text drop-shadow-sm">{kid.name}</h3>
+        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+          <span className="font-bold text-kid-primary-dark bg-kid-primary/20 px-3 py-1 rounded-xl text-sm flex items-center gap-1 border border-white/40 shadow-sm">
+            <GraduationCap size={16} /> {kid.age?.toUpperCase() || 'KG1'}
+          </span>
+          <span className="font-bold text-kid-yellow-dark bg-kid-yellow/30 px-3 py-1 rounded-xl text-sm flex items-center gap-1 border border-white/40 shadow-sm">
+            <Star size={16} className="fill-kid-yellow-dark" /> {kid.stars} stars
+          </span>
+        </div>
+        <div className="flex items-center justify-center sm:justify-start gap-3 mt-4 pt-3 border-t border-white/40">
+          <ProgressRing progress={progress} size={60} />
+          <span className="font-baloo font-bold text-lg text-slate-500">Level {kid.level || 1}</span>
         </div>
       </div>
     </motion.div>

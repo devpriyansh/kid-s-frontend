@@ -10,6 +10,29 @@ const Progress = () => {
   const { selectedKid } = useKid();
   const { data } = useDashboard();
   
+  const overallProgress = React.useMemo(() => {
+    if (!selectedKid?.age) return { percentage: 0, completed: 0, total: 0 };
+    const classData = getClass(selectedKid.age);
+    if (!classData) return { percentage: 0, completed: 0, total: 0 };
+
+    const totalLessons = classData.modules.reduce((sum, mod) => sum + (mod.lessons?.length || 0), 0);
+    if (totalLessons === 0) return { percentage: 0, completed: 0, total: 0 };
+
+    const key = `progress_${selectedKid.id}_${selectedKid.age}`;
+    const stored = localStorage.getItem(key);
+    const progressData = stored ? JSON.parse(stored) : {};
+
+    let completedLessons = 0;
+    classData.modules.forEach(mod => {
+      const modProg = progressData[mod.id];
+      if (modProg && Array.isArray(modProg.completed)) {
+        completedLessons += modProg.completed.length;
+      }
+    });
+
+    return { percentage: (completedLessons / totalLessons) * 100, completed: completedLessons, total: totalLessons };
+  }, [selectedKid]);
+
   if (!selectedKid) {
     return (
       <div className="text-center py-20">
@@ -29,31 +52,8 @@ const Progress = () => {
   if (selectedKid.stars >= 50) badges.push('⭐ Star Collector');
   if (selectedKid.level >= 3) badges.push('🏅 Super Scholar');
 
-  const overallProgress = React.useMemo(() => {
-    if (!selectedKid?.age) return 0;
-    const classData = getClass(selectedKid.age);
-    if (!classData) return 0;
-
-    const totalLessons = classData.modules.reduce((sum, mod) => sum + (mod.lessons?.length || 0), 0);
-    if (totalLessons === 0) return 0;
-
-    const key = `progress_${selectedKid.id}_${selectedKid.age}`;
-    const stored = localStorage.getItem(key);
-    const progressData = stored ? JSON.parse(stored) : {};
-
-    let completedLessons = 0;
-    classData.modules.forEach(mod => {
-      const modProg = progressData[mod.id];
-      if (modProg && Array.isArray(modProg.completed)) {
-        completedLessons += modProg.completed.length;
-      }
-    });
-
-    return { percentage: (completedLessons / totalLessons) * 100, completed: completedLessons, total: totalLessons };
-  }, [selectedKid]);
-
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full overflow-y-auto hide-scrollbar space-y-6 pb-10">
       <div className="flex items-center gap-4">
         <span className="text-6xl">{selectedKid.avatar}</span>
         <h1 className="text-4xl font-fredoka font-bold gradient-text">{selectedKid.name}'s Progress</h1>

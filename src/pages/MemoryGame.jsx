@@ -5,7 +5,8 @@ import { useKid } from '../contexts/KidContext';
 import ConfettiEffect from '../components/common/ConfettiEffect';
 import FunLoader from '../components/common/FunLoader';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://kid-s-backend.onrender.com/api/v1';
+const _envUrl = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = _envUrl ? (_envUrl.endsWith('/api/v1') ? _envUrl : _envUrl.replace(/\/$/, '') + '/api/v1') : 'https://kid-s-backend.onrender.com/api/v1';
 
 // Emoji sets for different game themes mapped by keywords in title
 const THEMES = {
@@ -153,16 +154,40 @@ const MemoryGame = () => {
   if (!quiz) return <FunLoader message="Loading Memory Game..." />;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-[100dvh] overflow-hidden flex flex-col max-w-4xl mx-auto p-4">
-      {isFinished && <ConfettiEffect />}
-      
-      <div className="flex-none text-center mb-4">
-        <h1 className="text-3xl md:text-4xl font-fredoka font-bold gradient-text">{quiz.title.replace('[Memory] ', '')}</h1>
-        <p className="text-lg text-gray-600 mt-1">Moves: {moves}</p>
+    <div className="absolute inset-0 z-[100] bg-kid-bg flex flex-col items-center justify-center overflow-hidden">
+      {/* Dynamic Background */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <motion.div 
+          className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-kid-primary/20 blur-[100px] mix-blend-multiply"
+          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div 
+          className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-kid-yellow/20 blur-[150px] mix-blend-multiply"
+          animate={{ scale: [1, 1.1, 1], x: [0, -40, 0], y: [0, -50, 0] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto hide-scrollbar pb-4 px-2 content-center">
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 md:gap-6 justify-center w-full max-w-2xl mx-auto">
+      <button 
+        onClick={() => navigate('/class-dashboard')}
+        className="absolute top-4 left-4 z-[60] bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] font-bold text-slate-600 flex items-center gap-2 border-2 border-slate-200 hover:bg-white transition-colors"
+      >
+        ⬅️ <span className="hidden sm:inline">Back</span>
+      </button>
+
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full w-full flex flex-col max-w-4xl mx-auto p-2 z-10 pt-14 sm:pt-2">
+        {isFinished && <ConfettiEffect />}
+        
+        <div className="flex-none text-center mb-2 mt-0 sm:ml-24">
+          <div className="glass-panel px-4 py-1 sm:px-6 sm:py-2 inline-block border-white/60">
+            <h1 className="text-lg md:text-xl font-baloo font-black gradient-text">{quiz.title.replace('[Memory] ', '')}</h1>
+            <p className="text-sm sm:text-base font-bold text-slate-500 mt-0 font-nunito drop-shadow-sm">Moves: {moves}</p>
+          </div>
+        </div>
+
+        <div className="flex-1 min-h-0 overflow-y-auto hide-scrollbar pb-4 px-1 content-center">
+        <div className="grid grid-cols-4 sm:grid-cols-4 gap-2 md:gap-4 justify-center w-full max-w-[400px] sm:max-w-xl mx-auto">
         {cards.map((card, index) => {
           const isFlipped = flippedIndices.includes(index) || matchedPairs.includes(card.content);
           
@@ -179,14 +204,14 @@ const MemoryGame = () => {
                 transition={{ duration: 0.6, type: 'spring', stiffness: 260, damping: 20 }}
                 style={{ transformStyle: 'preserve-3d' }}
               >
-                {/* Back of card (Red cover) */}
-                <div className="absolute inset-0 backface-hidden bg-red-500 rounded-xl shadow-md border-4 border-white/20 flex items-center justify-center">
-                  <div className="w-12 h-12 bg-white/20 rounded-full blur-md absolute"></div>
-                  <span className="text-white text-4xl opacity-50">?</span>
+                {/* Back of card (Cover) */}
+                <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-kid-primary to-kid-primary-dark border-2 border-white/60 rounded-xl sm:rounded-2xl shadow-[0_4px_8px_rgba(59,130,246,0.3),inset_0_2px_4px_rgba(255,255,255,0.4)] flex items-center justify-center overflow-hidden">
+                  <div className="w-8 h-8 sm:w-12 sm:h-12 bg-white/20 rounded-full blur-sm absolute top-1 right-1"></div>
+                  <span className="text-white text-3xl sm:text-4xl font-black font-baloo opacity-80 drop-shadow-sm">?</span>
                 </div>
                 
                 {/* Front of card (Emoji) */}
-                <div className="absolute inset-0 backface-hidden rotate-y-180 bg-white rounded-xl shadow-lg border-4 border-kid-purple flex items-center justify-center text-6xl">
+                <div className="absolute inset-0 backface-hidden rotate-y-180 bg-white/90 backdrop-blur-md rounded-xl sm:rounded-2xl shadow-[0_4px_8px_rgba(0,0,0,0.1),inset_0_2px_4px_rgba(255,255,255,0.8)] border border-white flex items-center justify-center text-3xl sm:text-[3rem] drop-shadow-md">
                   {card.content}
                 </div>
               </motion.div>
@@ -203,13 +228,14 @@ const MemoryGame = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
           >
-            <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 text-center shadow-2xl border-4 border-kid-yellow">
-              <div className="text-8xl mb-4">🏆</div>
-              <h2 className="text-4xl font-fredoka font-bold gradient-text mb-4">You Did It!</h2>
-              <p className="text-xl text-gray-700 mb-6">Matched all pairs in {moves} moves!</p>
+            <div className="glass-panel p-6 sm:p-10 max-w-md w-full mx-4 text-center border-white/80 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-kid-yellow/30 rounded-full blur-3xl pointer-events-none"></div>
+              <div className="text-[4rem] sm:text-[6rem] mb-2 sm:mb-4 drop-shadow-md relative z-10">🏆</div>
+              <h2 className="text-3xl sm:text-5xl font-baloo font-black gradient-text mb-2 sm:mb-4 relative z-10">You Did It!</h2>
+              <p className="text-lg sm:text-2xl font-bold text-slate-500 mb-6 sm:mb-8 font-nunito relative z-10">Matched all pairs in <span className="text-kid-primary-dark font-baloo text-xl sm:text-3xl">{moves}</span> moves!</p>
               <button 
                 onClick={() => navigate('/class-dashboard')}
-                className="btn-primary w-full text-2xl py-4"
+                className="btn-chunky w-full text-xl sm:text-2xl py-4 sm:py-6 bg-gradient-to-b from-kid-green to-kid-green-dark shadow-[0_8px_16px_rgba(110,231,183,0.3),inset_0_4px_8px_rgba(255,255,255,0.4)] relative z-10"
               >
                 Back to Dashboard
               </button>
@@ -217,6 +243,7 @@ const MemoryGame = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      </motion.div>
 
       <style jsx global>{`
         .perspective-1000 {
@@ -239,7 +266,7 @@ const MemoryGame = () => {
           scrollbar-width: none;
         }
       `}</style>
-    </motion.div>
+    </div>
   );
 };
 

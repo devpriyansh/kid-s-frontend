@@ -13,9 +13,10 @@ const ClassBadge = ({ classId, size = 'md' }) => {
 
   return (
     <span
-      className={`${sizeClasses[size]} bg-gradient-to-r ${cls.color} text-white rounded-full font-bold shadow-md flex items-center gap-2`}
+      className={`${sizeClasses[size]} bg-white border-2 border-slate-200 text-slate-700 rounded-2xl font-black shadow-[0_4px_0_0_rgba(226,232,240,1)] flex items-center gap-2 select-none`}
     >
-      {cls.icon} {cls.label}
+      <span className="drop-shadow-sm">{cls.icon}</span> 
+      <span>{cls.label}</span>
     </span>
   );
 };

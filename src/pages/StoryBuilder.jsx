@@ -5,7 +5,8 @@ import { useKid } from '../contexts/KidContext';
 import ConfettiEffect from '../components/common/ConfettiEffect';
 import FunLoader from '../components/common/FunLoader';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://kid-s-backend.onrender.com/api/v1';
+const _envUrl = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = _envUrl ? (_envUrl.endsWith('/api/v1') ? _envUrl : _envUrl.replace(/\/$/, '') + '/api/v1') : 'https://kid-s-backend.onrender.com/api/v1';
 
 const playSound = (type) => {
   try {
@@ -162,19 +163,47 @@ const StoryBuilder = () => {
   if (!quiz || !story) return <FunLoader message="Loading Story Builder..." />;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-[100dvh] overflow-hidden flex flex-col max-w-5xl mx-auto p-4">
-      {isFinished && <ConfettiEffect />}
-      
-      <div className="flex-none text-center mb-4">
-        <h1 className="text-3xl md:text-4xl font-fredoka font-bold gradient-text">{story.title}</h1>
-        <p className="text-lg text-gray-600 mt-1">Build the story by placing the items!</p>
-        <p className="text-md font-bold text-kid-purple mt-1">Moves: {moves}</p>
+    <div className="absolute inset-0 z-[100] bg-kid-bg flex flex-col items-center justify-center overflow-hidden">
+      {/* Dynamic Background */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <motion.div 
+          className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-kid-primary/20 blur-[100px] mix-blend-multiply"
+          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div 
+          className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-kid-yellow/20 blur-[150px] mix-blend-multiply"
+          animate={{ scale: [1, 1.1, 1], x: [0, -40, 0], y: [0, -50, 0] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
       </div>
 
-      <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-8 justify-center items-center lg:items-stretch mt-4 overflow-y-auto hide-scrollbar pb-4">
+      <button 
+        onClick={() => navigate('/class-dashboard')}
+        className="absolute top-4 left-4 z-[60] bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] font-bold text-slate-600 flex items-center gap-2 border-2 border-slate-200 hover:bg-white transition-colors"
+      >
+        ⬅️ <span className="hidden sm:inline">Back</span>
+      </button>
+
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full w-full flex flex-col max-w-6xl mx-auto p-2 z-10 pt-14 sm:pt-2">
+        {isFinished && <ConfettiEffect />}
+        
+        <div className="flex-none text-center mb-2 mt-0 relative z-10 flex flex-col items-center sm:ml-24">
+          <div className="glass-panel px-4 py-1 sm:px-6 sm:py-2 inline-block mb-1 sm:mb-2 border-white/60">
+            <h1 className="text-lg md:text-xl font-baloo font-black gradient-text">{story.title}</h1>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-500 mt-0 font-black glass-panel inline-block px-4 py-1 sm:py-2 border-white/60 drop-shadow-sm font-nunito">
+            Build the story by placing the items!
+          </p>
+          <div className="flex justify-center gap-2 sm:gap-4 mt-2">
+            <span className="text-sm sm:text-base font-baloo font-black text-kid-secondary-dark bg-white/60 backdrop-blur-sm border border-white/80 px-3 py-1 sm:px-4 sm:py-1.5 rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.05)]">Moves: {moves}</span>
+          </div>
+        </div>
+
+        <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-2 sm:gap-4 lg:gap-8 justify-center items-center lg:items-stretch mt-2 sm:mt-4 overflow-y-auto hide-scrollbar pb-4 px-1">
         
         {/* Story Scene Canvas */}
-        <div className={`flex-1 min-h-0 w-full bg-white rounded-3xl shadow-xl border-8 border-kid-secondary/30 relative overflow-hidden ${story.bgClass} flex flex-col justify-center min-h-[300px]`}>
+        <div className={`flex-1 min-h-0 w-full rounded-2xl sm:rounded-[3rem] shadow-[inset_0_4px_16px_rgba(0,0,0,0.2)] border-[3px] sm:border-[6px] border-white/60 relative overflow-hidden ${story.bgClass} flex flex-col justify-center min-h-[300px] sm:min-h-[400px]`}>
           {story.targets.map(target => {
             const isPlaced = placedItems.includes(target.id);
             return (
@@ -187,13 +216,13 @@ const StoryBuilder = () => {
                   left: `${target.x}%`, 
                   top: `${target.y}%`, 
                   zIndex: target.z,
-                  width: '100px',
-                  height: '100px'
+                  width: '60px',
+                  height: '60px'
                 }}
               >
                 {!isPlaced && (
-                  <div className="w-16 h-16 border-4 border-dashed border-white/50 rounded-xl bg-white/20 flex items-center justify-center">
-                    <span className="text-white/70 text-sm font-bold text-center leading-tight shadow-sm">{target.label}</span>
+                  <div className="w-12 h-12 sm:w-20 sm:h-20 border-[3px] sm:border-4 border-dashed border-white/80 rounded-xl sm:rounded-2xl bg-white/30 flex items-center justify-center backdrop-blur-sm shadow-sm">
+                    <span className="text-white text-xs sm:text-lg font-black text-center leading-tight drop-shadow-md">{target.label}</span>
                   </div>
                 )}
                 {isPlaced && (
@@ -204,7 +233,7 @@ const StoryBuilder = () => {
                       opacity: 1 
                     }}
                     transition={isFinished ? { duration: 1, repeat: Infinity } : { type: 'spring' }}
-                    className="text-7xl drop-shadow-lg"
+                    className="text-4xl sm:text-7xl drop-shadow-lg"
                   >
                     {target.emoji}
                   </motion.div>
@@ -215,9 +244,9 @@ const StoryBuilder = () => {
         </div>
 
         {/* Props Tray */}
-        <div className="bg-white p-4 rounded-3xl shadow-xl border-4 border-kid-pink/30 w-full lg:w-48 xl:w-56 flex flex-col items-center overflow-y-auto hide-scrollbar">
-          <h2 className="text-2xl font-bold text-gray-700 w-full text-center mb-6">Props</h2>
-          <div className="flex flex-row lg:flex-col flex-wrap gap-4 justify-center items-center">
+        <div className="glass-panel p-2 sm:p-4 md:p-6 border-white/60 w-full lg:w-48 xl:w-56 flex flex-col items-center overflow-y-auto hide-scrollbar h-fit max-h-full">
+          <h2 className="text-xl sm:text-2xl font-black font-baloo text-kid-primary-dark w-full text-center mb-2 sm:mb-4 drop-shadow-sm">Props</h2>
+          <div className="flex flex-row lg:flex-col flex-wrap gap-2 sm:gap-4 justify-center items-center">
             {story.targets.map(target => {
               if (placedItems.includes(target.id)) return null;
               return (
@@ -225,16 +254,16 @@ const StoryBuilder = () => {
                   key={`tray-${target.id}`}
                   draggable
                   onDragStart={(e) => handleDragStart(e, target.id)}
-                  className="w-24 h-24 lg:w-32 lg:h-32 bg-gray-50 rounded-2xl shadow-lg cursor-grab active:cursor-grabbing hover:scale-105 transition-transform border-2 border-gray-200 flex flex-col items-center justify-center"
+                  className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-white/60 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-[0_2px_4px_rgba(0,0,0,0.1)] cursor-grab active:cursor-grabbing hover:scale-105 transition-transform border border-white flex flex-col items-center justify-center hover:bg-white hover:shadow-[0_4px_8px_rgba(0,0,0,0.1)]"
                 >
-                  <span className="text-5xl">{target.emoji}</span>
-                  <span className="text-sm font-bold text-gray-500 mt-2">{target.label}</span>
+                  <span className="text-3xl sm:text-4xl drop-shadow-md">{target.emoji}</span>
+                  <span className="text-xs sm:text-sm font-black font-baloo text-kid-primary-dark mt-1 drop-shadow-sm">{target.label}</span>
                 </div>
               );
             })}
             
             {story.targets.every(t => placedItems.includes(t.id)) && (
-              <div className="text-green-500 font-bold text-xl py-4 w-full text-center">
+              <div className="text-green-500 font-black text-lg sm:text-xl py-2 w-full text-center">
                 Story Built! 📖
               </div>
             )}
@@ -247,26 +276,17 @@ const StoryBuilder = () => {
           <motion.div 
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            className="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-white rounded-full px-8 py-4 shadow-2xl border-4 border-kid-primary text-center z-50 flex gap-4 items-center"
+            className="fixed bottom-4 left-1/2 transform -translate-x-1/2 glass-panel px-6 py-4 sm:px-10 sm:py-8 text-center z-50 flex flex-col md:flex-row gap-4 sm:gap-6 items-center shadow-2xl border-white/80 w-[90%] sm:w-auto max-w-md"
           >
-            <span className="text-2xl font-bold text-kid-primary text-shadow-sm">{story.title}!</span>
-            <button onClick={() => navigate('/class-dashboard')} className="btn-primary py-2 px-6">
+            <span className="text-2xl sm:text-4xl font-black font-baloo gradient-text">{story.title}!</span>
+            <button onClick={() => navigate('/class-dashboard')} className="btn-chunky py-2 px-6 sm:py-4 sm:px-8 text-xl sm:text-2xl bg-gradient-to-b from-kid-green to-kid-green-dark shadow-[0_4px_8px_rgba(110,231,183,0.3),inset_0_2px_4px_rgba(255,255,255,0.4)]">
               Dashboard
             </button>
           </motion.div>
         )}
       </AnimatePresence>
-
-      <style>{`
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .hide-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 };
 

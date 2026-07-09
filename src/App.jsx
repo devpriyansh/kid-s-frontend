@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { AuthProvider } from './contexts/AuthContext'
 import { KidProvider } from './contexts/KidContext'
 import { RewardProvider } from './contexts/RewardContext'
@@ -44,8 +45,28 @@ function App() {
         <RewardProvider>
           <ClassProvider>
             <WakeUpLoader>
-              <Suspense fallback={<div className="flex items-center justify-center h-screen w-full"><FunLoader message="Loading..." /></div>}>
-                <Routes>
+              <Suspense fallback={<div className="flex items-center justify-center h-full w-full app-frame"><FunLoader message="Loading..." /></div>}>
+                <div className="app-frame bg-kid-bg/50 relative overflow-hidden">
+                  {/* Premium Fluid Animated Backgrounds */}
+                  <div className="absolute inset-0 pointer-events-none z-[-1] overflow-hidden">
+                    <motion.div 
+                      className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-kid-primary/20 blur-[100px] mix-blend-multiply"
+                      animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
+                      transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                    <motion.div 
+                      className="absolute top-[20%] right-[-10%] w-[40vw] h-[40vw] rounded-full bg-kid-secondary/20 blur-[120px] mix-blend-multiply"
+                      animate={{ scale: [1, 1.3, 1], x: [0, -60, 0], y: [0, 40, 0] }}
+                      transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+                    />
+                    <motion.div 
+                      className="absolute bottom-[-20%] left-[20%] w-[60vw] h-[60vw] rounded-full bg-kid-purple/20 blur-[150px] mix-blend-multiply"
+                      animate={{ scale: [1, 1.1, 1], x: [0, 40, 0], y: [0, -50, 0] }}
+                      transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                    />
+                  </div>
+
+                  <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
@@ -79,8 +100,9 @@ function App() {
               </Route>
                             
                 <Route path="*" element={<Navigate to="/" />} />
-              </Routes>
-            </Suspense>
+                  </Routes>
+                </div>
+              </Suspense>
             </WakeUpLoader>
           </ClassProvider>
         </RewardProvider>

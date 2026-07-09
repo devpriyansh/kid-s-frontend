@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState } from 'react';
 
 const AuthContext = createContext();
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://kid-s-backend.onrender.com/api/v1';
+const _envUrl = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = _envUrl ? (_envUrl.endsWith('/api/v1') ? _envUrl : _envUrl.replace(/\/$/, '') + '/api/v1') : 'https://kid-s-backend.onrender.com/api/v1';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {

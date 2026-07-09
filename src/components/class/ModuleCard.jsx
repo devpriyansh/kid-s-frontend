@@ -10,10 +10,10 @@ const ModuleCard = ({ module, progress, onSelect }) => {
 
   return (
     <motion.div
-      whileHover={{ scale: hasLessons ? 1.05 : 1 }}
+      whileHover={{ scale: hasLessons ? 1.05 : 1, y: hasLessons ? -5 : 0 }}
       whileTap={{ scale: hasLessons ? 0.95 : 1 }}
-      className={`relative glass-card p-4 text-center cursor-pointer transition-all duration-200 hover:shadow-2xl ${
-        locked || !hasLessons ? 'opacity-50 grayscale' : ''
+      className={`relative glass-card p-5 text-center cursor-pointer transition-all duration-300 ${
+        locked || !hasLessons ? 'opacity-50 grayscale' : 'hover:shadow-[0_12px_40px_rgba(0,0,0,0.1),inset_0_2px_4px_rgba(255,255,255,0.9)]'
       }`}
       onClick={!locked && hasLessons ? onSelect : undefined}
     >
@@ -27,16 +27,16 @@ const ModuleCard = ({ module, progress, onSelect }) => {
           <span className="text-2xl text-gray-500">Coming Soon</span>
         </div>
       )}
-      <div className="text-5xl md:text-6xl mb-1">{icon}</div>
-      <h3 className="font-fredoka font-bold text-base md:text-lg text-gray-800">{title}</h3>
+      <div className="text-5xl md:text-6xl mb-3 drop-shadow-md bg-white/60 p-4 rounded-[2rem] shadow-inner border border-white inline-block mx-auto">{icon}</div>
+      <h3 className="font-baloo font-black text-xl md:text-2xl text-kid-text drop-shadow-sm leading-tight">{title}</h3>
       
-      <div className="flex justify-center my-3">
+      <div className="flex justify-center my-4">
         <ProgressRing progress={percent} size={70} />
       </div>
       
-      <div className="flex justify-between items-center text-sm text-gray-600 px-1">
-        <span>{completed}/{total}</span>
-        <span>⭐ {stars}</span>
+      <div className="flex justify-between items-center text-sm font-bold text-slate-500 px-1">
+        <span className="bg-white/60 px-2 py-1 rounded-lg">{completed}/{total}</span>
+        <span className="bg-kid-yellow/20 text-kid-yellow-dark px-2 py-1 rounded-lg border border-kid-yellow/40">⭐ {stars}</span>
       </div>
       
       {!locked && hasLessons && (

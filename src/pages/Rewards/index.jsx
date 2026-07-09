@@ -19,7 +19,7 @@ const Rewards = () => {
   const xp = (selectedKid.stars || 0) * 10 + (selectedKid.coins || 0) * 5;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full overflow-y-auto hide-scrollbar space-y-6 pb-10">
       <h1 className="text-4xl font-fredoka font-bold gradient-text">🏆 Rewards</h1>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-6">

@@ -4,33 +4,68 @@
 
 @layer base {
   body {
-    @apply font-nunito bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 min-h-screen;
+    @apply font-nunito text-kid-text overflow-hidden h-[100dvh] m-0 p-0 overscroll-none;
+    background-color: #F0F9FF; /* kid-bg */
   }
-  /* Custom scrollbar */
+  #root {
+    @apply h-full w-full flex flex-col overflow-hidden p-1 sm:p-2;
+  }
+  /* Hide scrollbar completely to enforce app-like feel, unless absolutely necessary */
   ::-webkit-scrollbar {
-    width: 8px;
+    width: 0px;
+    height: 0px;
+    background: transparent; 
   }
-  ::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
+}
+
+@layer utilities {
+  .app-frame {
+    @apply w-full h-full rounded-[2.5rem] md:rounded-[3.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1),inset_0_2px_4px_rgba(255,255,255,0.8)] border border-white/60 overflow-hidden relative mx-auto max-w-[1600px] bg-white/40 backdrop-blur-3xl;
   }
-  ::-webkit-scrollbar-thumb {
-    background: #c4b5fd;
-    border-radius: 10px;
+  
+  .glass-panel {
+    @apply bg-white/60 backdrop-blur-xl border border-white/80 shadow-[0_8px_32px_rgba(0,0,0,0.06),inset_0_2px_4px_rgba(255,255,255,0.9)] rounded-[2rem];
+  }
+
+  .text-glow {
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 10px rgba(255, 255, 255, 0.5);
+  }
+  
+  .gradient-text-premium {
+    @apply text-transparent bg-clip-text bg-gradient-to-br from-kid-primary-dark to-kid-purple-dark font-baloo font-black drop-shadow-sm;
+    -webkit-text-stroke: 1px rgba(255,255,255,0.8);
   }
 }
 
 @layer components {
+  /* Premium Glossy 3D Cards */
   .glass-card {
-    @apply bg-white/70 backdrop-blur-md border border-white/30 shadow-lg rounded-3xl;
+    @apply glass-panel transition-all duration-300 relative overflow-hidden hover:shadow-[0_12px_40px_rgba(0,0,0,0.1),inset_0_2px_4px_rgba(255,255,255,0.9)] hover:-translate-y-1;
   }
+  
+  /* Bright playful text */
   .gradient-text {
-    @apply bg-gradient-to-r from-kid-primary to-kid-purple bg-clip-text text-transparent;
+    @apply gradient-text-premium;
   }
+  
+  /* Premium Glossy Primary Button */
   .btn-primary {
-    @apply px-8 py-4 bg-gradient-to-r from-kid-primary to-kid-purple text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200;
+    @apply relative px-8 py-4 bg-gradient-to-b from-kid-primary to-kid-primary-dark text-white font-baloo font-black text-2xl rounded-[1.5rem] border border-white/40 shadow-[0_8px_16px_rgba(59,130,246,0.3),inset_0_4px_8px_rgba(255,255,255,0.4)] active:shadow-[0_2px_4px_rgba(59,130,246,0.3),inset_0_1px_2px_rgba(255,255,255,0.4)] active:translate-y-2 transition-all duration-200 flex items-center justify-center gap-3 select-none overflow-hidden hover:scale-[1.02];
   }
+  
+  .btn-primary::after {
+    content: '';
+    @apply absolute top-0 left-[-100%] w-1/2 h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-20deg];
+    animation: shine 3s infinite;
+  }
+  
+  /* Premium Glossy Secondary Button */
   .btn-secondary {
-    @apply px-8 py-4 bg-white/80 backdrop-blur-sm text-kid-purple font-bold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 border-2 border-kid-purple/30;
+    @apply relative px-8 py-4 bg-white/90 backdrop-blur-sm text-kid-primary-dark font-baloo font-black text-xl rounded-[1.5rem] border border-kid-primary/20 shadow-[0_8px_16px_rgba(0,0,0,0.05),inset_0_4px_8px_rgba(255,255,255,0.8)] hover:bg-white active:shadow-[0_2px_4px_rgba(0,0,0,0.05)] active:translate-y-2 transition-all duration-200 flex items-center justify-center gap-3 select-none hover:scale-[1.02];
+  }
+  
+  /* Generic Premium Button Base (for custom colors) */
+  .btn-chunky {
+    @apply relative px-8 py-4 text-white font-baloo font-black text-xl rounded-[1.5rem] border border-white/40 active:translate-y-2 transition-all duration-200 flex items-center justify-center gap-2 select-none overflow-hidden hover:scale-[1.02];
   }
 }

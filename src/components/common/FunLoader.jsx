@@ -7,7 +7,7 @@ const FunLoader = ({ message = "Loading..." }) => {
       <div className="relative flex items-center justify-center mb-6">
         {/* Outer glowing ring */}
         <motion.div
-          className="absolute w-24 h-24 rounded-full border-4 border-kid-purple/30 border-t-kid-purple"
+          className="absolute w-24 h-24 rounded-full border-4 border-kid-primary/30 border-t-kid-primary"
           animate={{ rotate: 360 }}
           transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
         />
@@ -51,7 +51,7 @@ const FunLoader = ({ message = "Loading..." }) => {
       </div>
       
       <motion.h3 
-        className="text-xl md:text-2xl font-bold text-kid-purple text-center tracking-wide"
+        className="text-xl md:text-2xl font-bold text-kid-primary-dark text-center tracking-wide"
         animate={{ opacity: [0.5, 1, 0.5] }}
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
       >

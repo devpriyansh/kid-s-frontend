@@ -5,7 +5,8 @@ import { useKid } from '../contexts/KidContext';
 import ConfettiEffect from '../components/common/ConfettiEffect';
 import FunLoader from '../components/common/FunLoader';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://kid-s-backend.onrender.com/api/v1';
+const _envUrl = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = _envUrl ? (_envUrl.endsWith('/api/v1') ? _envUrl : _envUrl.replace(/\/$/, '') + '/api/v1') : 'https://kid-s-backend.onrender.com/api/v1';
 
 const playSound = (type) => {
   try {
@@ -165,29 +166,52 @@ const PuzzleGame = () => {
   const bgSize = `${gridSize * 100}% ${gridSize * 100}%`;
   
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-[100dvh] overflow-hidden flex flex-col max-w-6xl mx-auto p-4">
-      {isFinished && <ConfettiEffect />}
-      
-      <div className="flex-none text-center mb-4">
-        <h1 className="text-3xl md:text-4xl font-fredoka font-bold gradient-text">{quiz.title.replace('[Puzzle] ', '')}</h1>
-        <p className="text-lg text-gray-600 mt-1">{quiz.description}</p>
-        <p className="text-md font-bold text-kid-purple mt-1">Moves: {moves}</p>
+    <div className="absolute inset-0 z-[100] bg-kid-bg flex flex-col items-center justify-center overflow-hidden">
+      {/* Dynamic Background */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <motion.div 
+          className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-kid-primary/20 blur-[100px] mix-blend-multiply"
+          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div 
+          className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-kid-yellow/20 blur-[150px] mix-blend-multiply"
+          animate={{ scale: [1, 1.1, 1], x: [0, -40, 0], y: [0, -50, 0] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
       </div>
 
-      <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-4 md:gap-8 justify-center items-center lg:items-stretch overflow-y-auto lg:overflow-hidden pb-4 hide-scrollbar">
+      <button 
+        onClick={() => navigate('/class-dashboard')}
+        className="absolute top-4 left-4 z-[60] bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] font-bold text-slate-600 flex items-center gap-2 border-2 border-slate-200 hover:bg-white transition-colors"
+      >
+        ⬅️ <span className="hidden sm:inline">Back</span>
+      </button>
+
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full w-full flex flex-col max-w-6xl mx-auto p-2 z-10 pt-14 sm:pt-2">
+        {isFinished && <ConfettiEffect />}
+        
+        <div className="flex-none text-center mb-2 mt-0 sm:ml-24">
+          <div className="glass-panel px-4 py-1 sm:px-6 sm:py-2 inline-block border-white/60">
+            <h1 className="text-lg md:text-xl font-baloo font-black gradient-text">{quiz.title.replace('[Puzzle] ', '')}</h1>
+            <p className="text-xs sm:text-sm font-bold text-slate-500 mt-0 font-nunito drop-shadow-sm">{quiz.description}</p>
+          </div>
+        </div>
+
+        <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-2 md:gap-4 justify-center items-center lg:items-stretch overflow-y-auto lg:overflow-hidden pb-4 hide-scrollbar px-1">
         
         {/* Reference Image Thumbnail */}
         <div className="flex flex-col items-center">
-          <p className="font-bold text-gray-500 mb-2 text-xl">Reference</p>
-          <div className="w-48 h-48 lg:w-64 lg:h-64 rounded-2xl overflow-hidden border-4 border-white shadow-lg pointer-events-none">
-            <img src={quiz.image_url} alt="Reference" className="w-full h-full object-cover" />
+          <p className="font-black font-baloo text-kid-primary-dark mb-1 text-base sm:text-xl drop-shadow-sm">Reference</p>
+          <div className="w-24 h-24 sm:w-32 sm:h-32 lg:w-48 lg:h-48 rounded-2xl overflow-hidden glass-panel border-[3px] sm:border-[4px] border-white/80 pointer-events-none p-1">
+            <img src={quiz.image_url} alt="Reference" className="w-full h-full object-cover rounded-xl" />
           </div>
         </div>
 
         {/* Main Puzzle Grid */}
-        <div className="flex-1 w-full max-w-[400px] bg-white/50 p-4 rounded-3xl shadow-xl border-4 border-kid-secondary/30 flex flex-col justify-center">
+        <div className="flex-1 w-full max-w-[300px] sm:max-w-[400px] glass-panel p-2 sm:p-4 border-white/60 flex flex-col justify-center items-center h-fit my-auto">
           <div
-            className="grid gap-1 bg-white border-4 border-gray-300 rounded-lg p-1 w-full shadow-md"
+            className="grid gap-1 sm:gap-2 bg-white/40 border-[3px] sm:border-[4px] border-white/80 rounded-xl sm:rounded-2xl p-1 sm:p-2 w-full shadow-inner aspect-square backdrop-blur-sm"
             style={{ 
               gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`
             }}
@@ -202,7 +226,7 @@ const PuzzleGame = () => {
                     key={`${r}-${c}`}
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDrop(e, r, c)}
-                    className={`relative w-full aspect-square bg-white rounded-sm shadow-inner overflow-hidden ${isPlaced ? '' : 'ring-2 ring-inset ring-gray-200 hover:bg-gray-50'}`}
+                    className={`relative w-full aspect-square bg-white/60 rounded-xl overflow-hidden ${isPlaced ? 'shadow-sm' : 'shadow-inner border-2 border-dashed border-white/80 hover:bg-white/90'}`}
                   >
                     {!isPlaced && (
                       <div 
@@ -236,9 +260,9 @@ const PuzzleGame = () => {
         </div>
 
         {/* Draggable Pieces Tray */}
-        <div className="bg-white p-4 rounded-3xl shadow-xl border-4 border-kid-pink/30 w-full lg:w-48 xl:w-56 flex flex-col items-center overflow-y-auto hide-scrollbar">
-          <h2 className="text-xl font-bold text-gray-700 w-full text-center mb-4">Pieces</h2>
-          <div className="flex flex-row lg:flex-col flex-wrap gap-4 justify-center items-center pb-4">
+        <div className="glass-panel p-2 sm:p-4 border-white/60 w-full lg:w-48 xl:w-56 flex flex-col items-center overflow-y-auto hide-scrollbar h-fit max-h-full">
+          <h2 className="text-xl sm:text-2xl font-black font-baloo text-kid-primary-dark w-full text-center mb-2 drop-shadow-sm">Pieces</h2>
+          <div className="flex flex-row lg:flex-col flex-wrap gap-2 sm:gap-4 justify-center items-center pb-2">
             {pieces.map(piece => {
               if (placedPieces.includes(piece.id)) return null;
               
@@ -249,12 +273,11 @@ const PuzzleGame = () => {
                   key={piece.id}
                   draggable
                   onDragStart={(e) => handleDragStart(e, piece.id)}
-                  className="w-24 h-24 lg:w-32 lg:h-32 xl:w-40 xl:h-40 rounded-md shadow-lg cursor-grab active:cursor-grabbing hover:scale-105 transition-transform"
+                  className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 xl:w-32 xl:h-32 rounded-xl cursor-grab active:cursor-grabbing hover:scale-105 transition-transform shadow-[0_4px_8px_rgba(0,0,0,0.1),inset_0_0_0_2px_rgba(255,255,255,0.8)] hover:shadow-[0_8px_16px_rgba(0,0,0,0.15),inset_0_0_0_2px_rgba(255,255,255,1)]"
                   style={{
                     backgroundImage: `url(${quiz.image_url})`,
                     backgroundSize: bgSize,
-                    backgroundPosition: bgPosition,
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), inset 0 0 0 2px rgba(255,255,255,0.8)'
+                    backgroundPosition: bgPosition
                   }}
                 />
               );
@@ -276,13 +299,14 @@ const PuzzleGame = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
           >
-            <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 text-center shadow-2xl border-4 border-kid-primary">
-              <div className="text-8xl mb-4">🖼️</div>
-              <h2 className="text-4xl font-fredoka font-bold gradient-text mb-4">Masterpiece!</h2>
-              <p className="text-xl text-gray-700 mb-6">You solved the puzzle in {moves} moves!</p>
+            <div className="glass-panel p-6 sm:p-10 max-w-md w-full mx-4 text-center border-white/80 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-kid-pink/30 rounded-full blur-3xl pointer-events-none"></div>
+              <div className="text-[4rem] sm:text-[6rem] mb-2 sm:mb-4 drop-shadow-md relative z-10">🖼️</div>
+              <h2 className="text-3xl sm:text-5xl font-baloo font-black gradient-text mb-2 sm:mb-4 relative z-10">Masterpiece!</h2>
+              <p className="text-lg sm:text-2xl font-bold text-slate-500 mb-6 sm:mb-8 font-nunito relative z-10">You solved the puzzle in <span className="text-kid-primary-dark font-baloo text-xl sm:text-3xl">{moves}</span> moves!</p>
               <button 
                 onClick={() => navigate('/class-dashboard')}
-                className="btn-primary w-full text-2xl py-4"
+                className="btn-chunky w-full text-xl sm:text-2xl py-4 sm:py-6 bg-gradient-to-b from-kid-green to-kid-green-dark shadow-[0_8px_16px_rgba(110,231,183,0.3),inset_0_4px_8px_rgba(255,255,255,0.4)] relative z-10"
               >
                 Back to Dashboard
               </button>
@@ -290,17 +314,8 @@ const PuzzleGame = () => {
           </motion.div>
         )}
       </AnimatePresence>
-
-      <style>{`
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .hide-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 };
 

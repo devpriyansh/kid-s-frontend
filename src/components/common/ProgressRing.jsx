@@ -8,38 +8,36 @@ const ProgressRing = ({ progress = 0, size = 100 }) => {
   const fontSize = size * 0.2;
 
   return (
-    <svg width={size} height={size} className="inline-block">
-      <circle
-        cx={center}
-        cy={center}
-        r={radius}
-        fill="transparent"
-        stroke="#e2e8f0"
-        strokeWidth={size * 0.08}
-      />
-      <circle
-        cx={center}
-        cy={center}
-        r={radius}
-        fill="transparent"
-        stroke="#a78bfa"
-        strokeWidth={size * 0.08}
-        strokeDasharray={circumference}
-        strokeDashoffset={circumference - stroke}
-        strokeLinecap="round"
-        transform={`rotate(-90 ${center} ${center})`}
-      />
-      <text
-        x={center}
-        y={center + fontSize * 0.35}
-        textAnchor="middle"
-        fontSize={fontSize}
-        fontWeight="bold"
-        fill="#4a5568"
+    <div className="relative inline-flex items-center justify-center">
+      <svg width={size} height={size} className="transform -rotate-90 drop-shadow-sm">
+        <circle
+          cx={center}
+          cy={center}
+          r={radius}
+          fill="transparent"
+          stroke="#F1F5F9"
+          strokeWidth={size * 0.12}
+        />
+        <circle
+          cx={center}
+          cy={center}
+          r={radius}
+          fill="transparent"
+          stroke="#38BDF8"
+          strokeWidth={size * 0.12}
+          strokeDasharray={circumference}
+          strokeDashoffset={circumference - stroke}
+          strokeLinecap="round"
+          className="transition-all duration-1000 ease-out"
+        />
+      </svg>
+      <span 
+        className="absolute font-black text-kid-text drop-shadow-sm"
+        style={{ fontSize: fontSize }}
       >
         {Math.round(progress)}%
-      </text>
-    </svg>
+      </span>
+    </div>
   );
 };
 

@@ -12,8 +12,11 @@ const AIVoiceTutor = ({ systemPrompt }) => {
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [isSavingKey, setIsSavingKey] = useState(false);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [textInput, setTextInput] = useState('');
   
   const accumulatedTranscriptRef = useRef('');
+  const isManualStop = useRef(false);
+  const isUnmounting = useRef(false);
 
   const handleSaveApiKey = async () => {
     setIsSavingKey(true);
@@ -21,7 +24,8 @@ const AIVoiceTutor = ({ systemPrompt }) => {
     setSuccessMessage(null);
     try {
       const token = localStorage.getItem('token');
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://kid-s-backend.onrender.com/api/v1';
+      const _envUrl = import.meta.env.VITE_API_BASE_URL;
+      const API_BASE_URL = _envUrl ? (_envUrl.endsWith('/api/v1') ? _envUrl : _envUrl.replace(/\/$/, '') + '/api/v1') : 'https://kid-s-backend.onrender.com/api/v1';
       const res = await fetch(`${API_BASE_URL}/user/api-key`, {
         method: 'PUT',
         headers: {
@@ -58,7 +62,8 @@ const AIVoiceTutor = ({ systemPrompt }) => {
           setIsCheckingKey(false);
           return;
         }
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://kid-s-backend.onrender.com/api/v1';
+        const _envUrl = import.meta.env.VITE_API_BASE_URL;
+        const API_BASE_URL = _envUrl ? (_envUrl.endsWith('/api/v1') ? _envUrl : _envUrl.replace(/\/$/, '') + '/api/v1') : 'https://kid-s-backend.onrender.com/api/v1';
         const res = await fetch(`${API_BASE_URL}/user/api-key-status`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -89,7 +94,7 @@ const AIVoiceTutor = ({ systemPrompt }) => {
       recognitionRef.current.onstart = () => {
         setIsListening(true);
         setError(null);
-        accumulatedTranscriptRef.current = '';
+        // Do not clear accumulatedTranscriptRef here, because it might be an auto-restart for a slow speaker.
       };
 
       recognitionRef.current.onresult = (event) => {
@@ -111,9 +116,12 @@ const AIVoiceTutor = ({ systemPrompt }) => {
       };
 
       recognitionRef.current.onend = () => {
+        if (isUnmounting.current) return;
         setIsListening(false);
-        const finalTranscript = accumulatedTranscriptRef.current.trim();
-        if (finalTranscript) {
+        
+        // If it ended naturally (browser timeout after silence) and we have text, send it!
+        if (!isManualStop.current && accumulatedTranscriptRef.current.trim()) {
+          const finalTranscript = accumulatedTranscriptRef.current.trim();
           handleUserMessage(finalTranscript);
           accumulatedTranscriptRef.current = '';
         }
@@ -124,6 +132,7 @@ const AIVoiceTutor = ({ systemPrompt }) => {
 
     // Cleanup
     return () => {
+      isUnmounting.current = true;
       if (recognitionRef.current) {
         recognitionRef.current.abort();
       }
@@ -149,7 +158,8 @@ const AIVoiceTutor = ({ systemPrompt }) => {
 
     try {
       const token = localStorage.getItem('token');
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://kid-s-backend.onrender.com/api/v1';
+      const _envUrl = import.meta.env.VITE_API_BASE_URL;
+      const API_BASE_URL = _envUrl ? (_envUrl.endsWith('/api/v1') ? _envUrl : _envUrl.replace(/\/$/, '') + '/api/v1') : 'https://kid-s-backend.onrender.com/api/v1';
 
       const response = await fetch(`${API_BASE_URL}/ai/tutor`, {
         method: 'POST',
@@ -168,12 +178,18 @@ const AIVoiceTutor = ({ systemPrompt }) => {
 
       if (!response.ok) {
         const errStr = JSON.stringify(data.errors || data.message || data);
-        if (errStr.includes("API_KEY_MISSING") || errStr.includes("API_KEY_INVALID")) {
+        if (errStr.includes("API_KEY_MISSING") || errStr.includes("API_KEY_INVALID") || errStr.includes("401") || errStr.includes("UNAUTHENTICATED")) {
           setNeedsApiKey(true);
-          throw new Error("No API key found or key is invalid. Please enter your Gemini API Key below.");
-        } else if (errStr.includes("GEMINI_API_ERROR") || errStr.includes("429")) {
+          const aiText = "You need an API key for me to talk! Please ask an adult to enter one.";
+          setMessages((prev) => [...prev, { role: 'assistant', content: aiText }]);
+          speakText(aiText);
+          return;
+        } else if (errStr.includes("GEMINI_API_ERROR") || errStr.includes("429") || errStr.includes("RESOURCE_EXHAUSTED")) {
           setNeedsApiKey(true);
-          throw new Error("Limit reached. Please buy or create a new API key.");
+          const aiText = "We reached our limit for today! Please ask an adult to update the API key so we can keep talking.";
+          setMessages((prev) => [...prev, { role: 'assistant', content: aiText }]);
+          speakText(aiText);
+          return;
         }
         throw new Error(data.message || "Failed to reach AI tutor.");
       }
@@ -223,166 +239,220 @@ const AIVoiceTutor = ({ systemPrompt }) => {
 
   const toggleListening = () => {
     if (isListening) {
-      recognitionRef.current?.stop();
+      isManualStop.current = true;
+      setIsListening(false); // Force UI update immediately
+      
+      try {
+        recognitionRef.current?.stop();
+      } catch (e) {
+        console.error("Stop error", e);
+      }
+      
+      const finalTranscript = accumulatedTranscriptRef.current.trim();
+      if (finalTranscript) {
+        handleUserMessage(finalTranscript);
+      }
+      accumulatedTranscriptRef.current = '';
     } else {
+      isManualStop.current = false;
       // Stop AI speaking if child interrupts
       synthesisRef.current?.cancel();
       setIsSpeaking(false);
       setError(null);
+      accumulatedTranscriptRef.current = ''; // Clear only on fresh manual start
       try {
         recognitionRef.current?.start();
       } catch (e) {
-        // Handle case where recognition is already started
+        console.error("Start error", e);
+        // Fallback: If it says it's already started, assume listening is active
+        setIsListening(true);
       }
     }
   };
 
+  const handleTextSubmit = () => {
+    if (!textInput.trim() || isProcessing || needsApiKey) return;
+    handleUserMessage(textInput.trim());
+    setTextInput('');
+  };
+
   return (
-    <div className="flex flex-col h-full bg-white/50 backdrop-blur-md rounded-3xl shadow-xl border-4 border-kid-primary/30 p-4 relative overflow-hidden">
+    <div className="flex flex-col h-full bg-slate-50 sm:glass-card sm:border-[4px] border-white relative overflow-hidden sm:shadow-[0_12px_40px_rgba(0,0,0,0.12)] sm:bg-white/60">
       
       {/* Decorative background elements */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-kid-yellow/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-32 h-32 bg-kid-pink/20 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-64 h-64 bg-kid-yellow/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none z-0" />
+      <div className="absolute bottom-0 left-0 w-64 h-64 bg-kid-pink/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none z-0" />
 
-      {/* Mascot Area */}
-      <div className="flex flex-col items-center justify-center py-6 flex-none relative z-10">
-        <button 
-          onClick={() => setNeedsApiKey(!needsApiKey)}
-          className="absolute top-0 right-0 p-3 bg-white/50 hover:bg-white/80 rounded-full shadow-sm text-xl transition-all"
-          title="Configure API Key"
-        >
-          ⚙️
-        </button>
+      {/* Top Header Area (Mascot & Title) */}
+      <div className="flex-none flex items-center gap-4 sm:gap-6 p-4 sm:p-6 border-b-2 border-white/60 bg-white/50 backdrop-blur-md relative z-10 shadow-[0_4px_16px_rgba(0,0,0,0.02)]">
+        
+        {/* Animated Mascot Image */}
         <motion.div 
           animate={
-            isSpeaking ? { y: [0, -15, 0], scale: [1, 1.05, 1] } : 
-            isListening ? { scale: [1, 1.1, 1] } : 
-            { y: [0, -5, 0] }
+            isSpeaking ? { y: [0, -8, 0], scaleY: [1, 1.05, 1], scaleX: [1, 0.95, 1] } : 
+            isListening ? { scale: [1, 1.05, 1] } : 
+            { y: [0, -4, 0] }
           }
           transition={{
-            duration: isSpeaking ? 0.4 : isListening ? 1.5 : 2,
+            duration: isSpeaking ? 0.3 : isListening ? 1.5 : 3,
             repeat: Infinity,
             ease: "easeInOut"
           }}
-          className={`text-8xl relative ${isListening ? 'drop-shadow-[0_0_20px_rgba(34,197,94,0.6)]' : isSpeaking ? 'drop-shadow-[0_0_20px_rgba(168,85,247,0.6)]' : 'drop-shadow-lg'}`}
+          className={`relative w-20 h-20 sm:w-28 sm:h-28 flex items-center justify-center rounded-full bg-white border-4 border-kid-primary shadow-xl z-20 ${isListening ? 'shadow-[0_0_20px_rgba(34,197,94,0.6)]' : isSpeaking ? 'shadow-[0_0_25px_rgba(168,85,247,0.7)]' : ''}`}
         >
-          🦉
+          <img src="/hootie_the_owl.png" alt="Hootie the Owl" className="w-full h-full object-cover rounded-full" />
           
           {/* Soundwaves when speaking */}
           <AnimatePresence>
             {isSpeaking && (
               <>
-                <motion.div initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: [0, 1, 0], scale: [1, 2] }} transition={{ duration: 1, repeat: Infinity, delay: 0 }} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full border-4 border-kid-purple rounded-full -z-10" />
-                <motion.div initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: [0, 1, 0], scale: [1, 2.5] }} transition={{ duration: 1, repeat: Infinity, delay: 0.3 }} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full border-4 border-kid-pink rounded-full -z-10" />
+                <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: [0, 0.8, 0], scale: [1, 1.8] }} transition={{ duration: 1, repeat: Infinity, delay: 0 }} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full border-4 border-kid-purple rounded-full -z-10" />
+                <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: [0, 0.6, 0], scale: [1, 2.2] }} transition={{ duration: 1, repeat: Infinity, delay: 0.3 }} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full border-4 border-kid-pink rounded-full -z-10" />
               </>
             )}
             {isListening && (
-              <motion.div initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: [0, 0.5, 0], scale: [1, 1.5] }} transition={{ duration: 1.5, repeat: Infinity }} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-green-400 rounded-full -z-10" />
+              <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: [0, 0.4, 0], scale: [1, 1.4] }} transition={{ duration: 1.5, repeat: Infinity }} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-green-400 rounded-full -z-10" />
             )}
           </AnimatePresence>
         </motion.div>
         
-        <h2 className="text-2xl font-bold text-gray-800 mt-4 font-fredoka">Hootie the Tutor</h2>
-        <p className="text-gray-500 font-semibold h-6">
-          {isListening ? "Listening to you..." : isSpeaking ? "Hootie is talking..." : isProcessing ? "Hootie is thinking..." : "Tap to talk!"}
-        </p>
+        <div className="flex-1">
+          <h2 className="text-2xl sm:text-4xl font-black text-kid-primary-dark font-baloo drop-shadow-sm leading-tight">Hootie the Tutor</h2>
+          <p className="text-slate-500 font-bold text-sm sm:text-lg font-nunito mt-1">
+            {isListening ? "Listening to you..." : isSpeaking ? "Hootie is talking..." : isProcessing ? "Hootie is thinking..." : "Tap the mic to talk!"}
+          </p>
+        </div>
+
+        {/* API Key Settings Button */}
+        <button 
+          onClick={() => setNeedsApiKey(!needsApiKey)}
+          className="p-3 sm:p-4 bg-white text-xl sm:text-2xl hover:bg-slate-50 border-2 border-slate-200 rounded-2xl shadow-[0_4px_8px_rgba(0,0,0,0.05),inset_0_-2px_4px_rgba(0,0,0,0.05)] transition-all hover:scale-105"
+          title="Configure API Key"
+        >
+          ⚙️
+        </button>
       </div>
 
-      {/* Success Message */}
-      {successMessage && (
-        <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 rounded shadow-sm z-10 flex-none text-sm font-semibold">
-          <p>{successMessage}</p>
-        </div>
-      )}
+      {/* Messages / Alerts */}
+      <div className="flex-none px-6 pt-4 relative z-10 w-full flex flex-col gap-2">
+        {successMessage && (
+          <div className="bg-green-100/90 backdrop-blur-sm border-l-4 border-green-500 text-green-700 p-3 sm:p-4 rounded-xl shadow-sm text-sm sm:text-base font-bold w-full">
+            {successMessage}
+          </div>
+        )}
+        {error && (
+          <div className="bg-red-100/90 backdrop-blur-sm border-l-4 border-red-500 text-red-700 p-3 sm:p-4 rounded-xl shadow-sm text-sm sm:text-base font-bold w-full">
+            {error}
+          </div>
+        )}
+      </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded shadow-sm z-10 flex-none text-sm font-semibold">
-          <p>{error}</p>
-        </div>
-      )}
-
-      {/* Chat History */}
-      <div ref={chatContainerRef} className="flex-1 min-h-0 overflow-y-auto hide-scrollbar bg-white/40 rounded-2xl p-4 mb-4 shadow-inner border-2 border-white flex flex-col gap-3 z-10">
+      {/* Chat History Well */}
+      <div ref={chatContainerRef} className="flex-1 min-h-0 overflow-y-auto hide-scrollbar px-4 sm:px-8 py-6 flex flex-col gap-6 z-10 w-full">
         {isCheckingKey ? (
           <div className="h-full flex items-center justify-center text-center opacity-50">
-            <p className="font-bold text-lg text-gray-500">Waking up Hootie... 🦉</p>
+            <p className="font-bold text-xl font-nunito text-slate-500">Waking up Hootie... 🦉</p>
           </div>
         ) : needsApiKey ? (
-          <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
-            <p className="font-bold text-lg text-gray-800">You need an API Key to talk to Hootie!</p>
-            <p className="text-sm text-gray-600 max-w-sm">
-              Please enter your Gemini API Key below. Get one from <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-kid-primary underline">Google AI Studio</a>.
-            </p>
-            <div className="flex gap-2 w-full max-w-md">
+          <div className="w-full my-auto flex flex-col items-center justify-center text-center space-y-4 sm:space-y-6 bg-white/60 p-6 sm:p-8 rounded-3xl border border-white shadow-sm max-w-lg mx-auto">
+            <div className="bg-kid-primary/20 p-3 sm:p-4 rounded-full">
+              <span className="text-3xl sm:text-4xl">🔑</span>
+            </div>
+            <div>
+              <p className="font-black text-xl sm:text-2xl text-kid-primary-dark font-baloo mb-2">API Key Required</p>
+              <p className="text-sm sm:text-base text-slate-600 font-bold max-w-sm">
+                Please enter your Gemini API Key to talk to Hootie. Get one from <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-kid-primary hover:text-kid-primary-dark underline">Google AI Studio</a>.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 w-full mt-2">
               <input 
                 type="password" 
                 placeholder="Paste API Key here..." 
                 value={apiKeyInput}
                 onChange={(e) => setApiKeyInput(e.target.value)}
-                className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-kid-primary outline-none"
+                className="flex-1 px-4 py-3 sm:py-4 rounded-2xl border-[3px] border-slate-200 focus:border-kid-primary outline-none font-nunito font-bold text-slate-700 bg-white/90 shadow-inner w-full"
               />
               <button 
                 onClick={handleSaveApiKey}
                 disabled={isSavingKey || !apiKeyInput}
-                className="bg-kid-primary text-white px-6 py-3 rounded-xl font-bold hover:bg-kid-primary/90 disabled:opacity-50"
+                className="btn-chunky px-6 py-3 sm:py-4 bg-gradient-to-b from-kid-primary to-kid-primary-dark shadow-[0_8px_16px_rgba(59,130,246,0.3),inset_0_4px_8px_rgba(255,255,255,0.4)] disabled:opacity-50 text-lg sm:text-xl font-baloo w-full sm:w-auto shrink-0"
               >
-                {isSavingKey ? 'Saving...' : 'Save'}
+                {isSavingKey ? 'Saving' : 'Save Key'}
               </button>
             </div>
           </div>
         ) : messages.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-center opacity-50">
-            <p className="font-bold text-lg text-gray-500">Say hello to Hootie! 👋</p>
+          <div className="h-full flex flex-col items-center justify-center text-center opacity-60">
+            <span className="text-6xl mb-4 grayscale opacity-50">👋</span>
+            <p className="font-bold text-2xl font-baloo text-slate-500">Say hello to Hootie!</p>
           </div>
         ) : (
           messages.map((msg, idx) => (
             <motion.div 
               key={idx}
-              initial={{ opacity: 0, y: 10, scale: 0.9 }}
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              className={`max-w-[85%] p-3 rounded-2xl ${
+              className={`max-w-[85%] sm:max-w-[75%] p-4 sm:p-5 rounded-[2rem] ${
                 msg.role === 'user' 
-                  ? 'bg-kid-primary text-white self-end rounded-br-sm shadow-md' 
-                  : 'bg-white text-gray-800 self-start rounded-bl-sm shadow-sm border border-gray-100'
+                  ? 'bg-gradient-to-br from-kid-primary to-kid-primary-dark text-white self-end rounded-br-md shadow-[0_12px_24px_rgba(59,130,246,0.25),inset_0_2px_4px_rgba(255,255,255,0.3)] border-2 border-kid-primary/40' 
+                  : 'bg-white/90 backdrop-blur-sm text-slate-700 self-start rounded-bl-md shadow-[0_12px_24px_rgba(0,0,0,0.06),inset_0_2px_4px_rgba(255,255,255,0.8)] border-[3px] border-white'
               }`}
             >
-              <p className="font-semibold text-lg">{msg.content}</p>
+              <p className="font-bold font-nunito text-lg sm:text-xl leading-relaxed">{msg.content}</p>
             </motion.div>
           ))
         )}
+        
+        {/* Processing Indicator */}
         {isProcessing && !needsApiKey && (
-          <div className="bg-white text-gray-500 self-start p-3 rounded-2xl rounded-bl-sm shadow-sm border border-gray-100 flex items-center gap-2">
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white/90 backdrop-blur-sm text-slate-500 self-start p-5 rounded-[2rem] rounded-bl-md shadow-md border-[3px] border-white flex items-center gap-3"
+          >
+            <div className="w-3 h-3 bg-kid-primary/60 rounded-full animate-bounce" />
+            <div className="w-3 h-3 bg-kid-primary/80 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+            <div className="w-3 h-3 bg-kid-primary rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
+          </motion.div>
         )}
       </div>
 
-      {/* Controls */}
-      <div className="flex-none flex justify-center z-10 pb-2">
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={toggleListening}
-          disabled={isProcessing || needsApiKey}
-          className={`flex items-center gap-3 px-8 py-4 rounded-full text-xl font-bold shadow-xl transition-colors ${
-            isListening 
-              ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse' 
-              : 'bg-green-500 hover:bg-green-600 text-white'
-          } ${(isProcessing || needsApiKey) ? 'opacity-50 cursor-not-allowed' : ''}`}
-        >
-          {isListening ? (
-            <>
-              <span className="text-3xl">🛑</span> Send / Stop
-            </>
-          ) : (
-            <>
-              <span className="text-3xl">🎤</span> {messages.length === 0 ? 'Start Lesson' : 'Tap to Talk'}
-            </>
-          )}
-        </motion.button>
+      {/* Bottom Controls Footer - Chat App Style */}
+      <div className="flex-none p-3 sm:p-6 bg-white/90 backdrop-blur-xl border-t-2 border-slate-200/60 z-20 w-full shadow-[0_-8px_32px_rgba(0,0,0,0.05)] pb-6 sm:pb-6">
+        
+        {needsApiKey && (
+           <p className="text-center text-red-500 font-bold mb-2 text-sm">Please enter API Key above to talk!</p>
+        )}
+
+        <div className="flex items-center gap-2 sm:gap-4 max-w-4xl mx-auto w-full">
+           <input 
+             type="text" 
+             value={textInput} 
+             onChange={e => setTextInput(e.target.value)}
+             onKeyDown={e => e.key === 'Enter' && handleTextSubmit()}
+             placeholder="Type a message..."
+             disabled={isProcessing || needsApiKey}
+             className="flex-1 bg-white border-[3px] border-slate-200 rounded-full px-5 sm:px-6 py-3 sm:py-4 text-base sm:text-xl font-nunito font-bold text-slate-700 outline-none focus:border-kid-primary shadow-inner disabled:opacity-50 transition-colors"
+           />
+           <button 
+             onClick={handleTextSubmit}
+             disabled={!textInput.trim() || isProcessing || needsApiKey}
+             className="btn-chunky bg-gradient-to-b from-kid-primary to-kid-primary-dark w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center shadow-[0_4px_12px_rgba(59,130,246,0.3)] disabled:opacity-50 shrink-0"
+           >
+             <span className="text-xl sm:text-2xl text-white">➤</span>
+           </button>
+           <button
+             onClick={toggleListening}
+             disabled={isProcessing || needsApiKey}
+             className={`btn-chunky w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-colors shrink-0 ${
+               isListening 
+                 ? 'bg-red-500 animate-pulse border-2 border-red-300' 
+                 : 'bg-kid-green border-2 border-kid-green-light'
+             } ${(isProcessing || needsApiKey) ? 'opacity-50 grayscale' : ''}`}
+           >
+             {isListening ? <span className="text-xl sm:text-2xl">🛑</span> : <span className="text-xl sm:text-2xl">🎤</span>}
+           </button>
+        </div>
       </div>
 
       <style>{`

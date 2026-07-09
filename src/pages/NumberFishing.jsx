@@ -5,7 +5,8 @@ import { useKid } from '../contexts/KidContext';
 import ConfettiEffect from '../components/common/ConfettiEffect';
 import FunLoader from '../components/common/FunLoader';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://kid-s-backend.onrender.com/api/v1';
+const _envUrl = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = _envUrl ? (_envUrl.endsWith('/api/v1') ? _envUrl : _envUrl.replace(/\/$/, '') + '/api/v1') : 'https://kid-s-backend.onrender.com/api/v1';
 
 const playSound = (type) => {
   try {
@@ -151,22 +152,46 @@ const NumberFishing = () => {
   if (!quiz) return <FunLoader message="Loading Number Fishing..." />;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-[100dvh] overflow-hidden flex flex-col max-w-4xl mx-auto p-4 relative">
-      {isFinished && <ConfettiEffect />}
-      
-      <div className="flex-none text-center mb-4 relative z-10">
-        <h1 className="text-3xl md:text-4xl font-fredoka font-bold gradient-text">{quiz.title.replace('[Fishing] ', '')}</h1>
-        <p className="text-2xl text-kid-purple mt-4 font-bold bg-white/80 inline-block px-8 py-2 rounded-full shadow-md">
-          Catch number <span className="text-4xl text-kid-primary ml-2">{targetNumber}</span>!
-        </p>
-        <div className="flex justify-center gap-4 mt-4">
-          <span className="text-lg font-bold text-green-600 bg-white/80 px-4 py-1 rounded-full">Caught: {score}/{targetScore}</span>
-          <span className="text-lg font-bold text-red-500 bg-white/80 px-4 py-1 rounded-full">Tries: {moves}</span>
-        </div>
+    <div className="absolute inset-0 z-[100] bg-kid-bg flex flex-col items-center justify-center overflow-hidden">
+      {/* Dynamic Background */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <motion.div 
+          className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-kid-primary/20 blur-[100px] mix-blend-multiply"
+          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div 
+          className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-kid-yellow/20 blur-[150px] mix-blend-multiply"
+          animate={{ scale: [1, 1.1, 1], x: [0, -40, 0], y: [0, -50, 0] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
       </div>
 
-      {/* The Pond */}
-      <div className="flex-1 min-h-0 w-full bg-gradient-to-b from-blue-300 to-blue-600 rounded-3xl relative overflow-hidden shadow-inner border-8 border-kid-secondary/50 cursor-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2232%22 height=%2232%22 style=%22font-size:24px%22><text y=%2224%22>🎣</text></svg>'),_auto]">
+      <button 
+        onClick={() => navigate('/class-dashboard')}
+        className="absolute top-4 left-4 z-[60] bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] font-bold text-slate-600 flex items-center gap-2 border-2 border-slate-200 hover:bg-white transition-colors"
+      >
+        ⬅️ <span className="hidden sm:inline">Back</span>
+      </button>
+
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full w-full flex flex-col max-w-5xl mx-auto p-2 z-10 pt-14 sm:pt-2">
+        {isFinished && <ConfettiEffect />}
+        
+        <div className="flex-none text-center mb-2 mt-0 relative z-10 flex flex-col items-center sm:ml-24">
+          <div className="glass-panel px-4 py-1 sm:px-6 sm:py-2 inline-block mb-1 sm:mb-2 border-white/60">
+            <h1 className="text-lg md:text-xl font-baloo font-black gradient-text">{quiz.title.replace('[Fishing] ', '')}</h1>
+          </div>
+          <p className="text-xs sm:text-sm text-kid-primary-dark mt-0 font-black glass-panel inline-block px-4 py-1 sm:py-2 border-white/60 drop-shadow-sm">
+            Catch number <span className="text-lg sm:text-2xl text-kid-purple mx-1 sm:mx-2 drop-shadow-md">{targetNumber}</span>!
+          </p>
+          <div className="flex justify-center gap-2 sm:gap-4 mt-2">
+            <span className="text-sm sm:text-base font-baloo font-black text-kid-green-dark bg-white/60 backdrop-blur-sm border border-white/80 px-3 py-1 sm:px-4 sm:py-1.5 rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.05)]">Caught: {score}/{targetScore}</span>
+            <span className="text-sm sm:text-base font-baloo font-black text-kid-secondary-dark bg-white/60 backdrop-blur-sm border border-white/80 px-3 py-1 sm:px-4 sm:py-1.5 rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.05)]">Tries: {moves}</span>
+          </div>
+        </div>
+
+        {/* The Pond */}
+        <div className="flex-1 min-h-0 w-full bg-gradient-to-b from-blue-200/80 to-blue-500/80 backdrop-blur-md rounded-2xl sm:rounded-[3rem] relative overflow-hidden shadow-[inset_0_4px_16px_rgba(0,0,0,0.2)] border-2 border-white/60 cursor-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22 style=%22font-size:36px%22><text y=%2236%22>🎣</text></svg>'),_auto]">
         {/* Ripples */}
         <div className="absolute inset-0 opacity-30 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMTgiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMSIvPjwvc3ZnPg==')] bg-repeat opacity-20 animate-pulse" />
 
@@ -180,12 +205,12 @@ const NumberFishing = () => {
               whileHover={{ scale: 1.2 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => handleCatch(fish)}
-              className="absolute text-7xl md:text-8xl flex items-center justify-center group"
+              className="absolute text-5xl sm:text-7xl md:text-8xl flex items-center justify-center group"
               style={{ top: `${fish.y}%`, transform: fish.direction === -1 ? 'scaleX(-1)' : 'none' }}
             >
               {fish.emoji}
               <div 
-                className="absolute text-3xl md:text-4xl font-black text-white drop-shadow-md z-10"
+                className="absolute text-xl sm:text-3xl md:text-4xl font-black text-white drop-shadow-md z-10"
                 style={{ transform: fish.direction === -1 ? 'scaleX(-1)' : 'none' }} // Keep number un-flipped
               >
                 {fish.number}
@@ -202,18 +227,20 @@ const NumberFishing = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
           >
-            <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 text-center shadow-2xl border-4 border-blue-400">
-              <div className="text-8xl mb-4">🎣</div>
-              <h2 className="text-4xl font-fredoka font-bold gradient-text mb-4">Master Fisher!</h2>
-              <p className="text-xl text-gray-700 mb-6">You caught all {targetScore} fish!</p>
-              <button onClick={() => navigate('/class-dashboard')} className="btn-primary w-full text-2xl py-4">
+            <div className="glass-panel p-6 sm:p-10 max-w-md w-full mx-4 text-center border-white/80 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-kid-primary/20 rounded-full blur-2xl pointer-events-none"></div>
+              <div className="text-[4rem] sm:text-[6rem] mb-2 sm:mb-4 drop-shadow-md relative z-10">🎣</div>
+              <h2 className="text-3xl sm:text-5xl font-baloo font-black gradient-text mb-2 sm:mb-4 relative z-10">Master Fisher!</h2>
+              <p className="text-lg sm:text-2xl font-bold text-slate-500 mb-6 sm:mb-8 font-nunito relative z-10">You caught all <span className="text-kid-primary-dark font-baloo text-xl sm:text-3xl">{targetScore}</span> fish!</p>
+              <button onClick={() => navigate('/class-dashboard')} className="btn-chunky w-full text-xl sm:text-2xl py-4 sm:py-6 bg-gradient-to-b from-kid-green to-kid-green-dark shadow-[0_8px_16px_rgba(110,231,183,0.3),inset_0_4px_8px_rgba(255,255,255,0.4)] relative z-10">
                 Back to Dashboard
               </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 };
 

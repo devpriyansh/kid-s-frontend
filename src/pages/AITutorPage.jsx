@@ -31,28 +31,45 @@ const AITutorPage = () => {
   if (!selectedKid || !systemPrompt) return null;
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }} 
-      animate={{ opacity: 1 }} 
-      className="h-[100dvh] overflow-hidden flex flex-col max-w-4xl mx-auto p-4"
-    >
-      {/* Header */}
-      <div className="flex-none flex items-center justify-between mb-4">
-        <button 
-          onClick={() => navigate('/class-dashboard')}
-          className="bg-white/80 p-3 rounded-full shadow-md text-2xl hover:scale-105 transition-transform"
-        >
-          ⬅️
-        </button>
-        <h1 className="text-3xl font-fredoka font-bold gradient-text">Talk to Hootie!</h1>
-        <div className="w-12" /> {/* Spacer for centering */}
+    <div className="absolute inset-0 z-[100] bg-kid-bg flex flex-col items-center justify-center overflow-hidden">
+      {/* Dynamic Background */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <motion.div 
+          className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-kid-primary/20 blur-[100px] mix-blend-multiply"
+          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div 
+          className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-kid-yellow/20 blur-[150px] mix-blend-multiply"
+          animate={{ scale: [1, 1.1, 1], x: [0, -40, 0], y: [0, -50, 0] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
       </div>
 
-      {/* Main Component */}
-      <div className="flex-1 min-h-0 w-full mb-4">
-        <AIVoiceTutor systemPrompt={systemPrompt} />
-      </div>
-    </motion.div>
+      <button 
+        onClick={() => navigate('/class-dashboard')}
+        className="absolute top-4 left-4 z-[60] bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] font-bold text-slate-600 flex items-center gap-2 border-2 border-slate-200 hover:bg-white transition-colors"
+      >
+        ⬅️ <span className="hidden sm:inline">Back</span>
+      </button>
+
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }} 
+        animate={{ opacity: 1, y: 0 }} 
+        className="flex-1 w-full flex flex-col max-w-4xl mx-auto p-2 z-10 pt-16 sm:pt-4"
+      >
+        <div className="flex-none items-center justify-center mb-2 sm:mb-4 text-center">
+          <h1 className="text-2xl sm:text-4xl font-baloo font-black text-kid-primary-dark drop-shadow-sm glass-panel inline-block px-6 py-2">
+            Talk to Hootie! 🦉
+          </h1>
+        </div>
+
+        {/* Main Component */}
+        <div className="flex-1 min-h-0 w-full relative">
+          <AIVoiceTutor systemPrompt={systemPrompt} onBack={() => navigate('/class-dashboard')} />
+        </div>
+      </motion.div>
+    </div>
   );
 };
 

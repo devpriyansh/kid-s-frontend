@@ -5,7 +5,8 @@ import { useKid } from '../contexts/KidContext';
 import ConfettiEffect from '../components/common/ConfettiEffect';
 import FunLoader from '../components/common/FunLoader';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://kid-s-backend.onrender.com/api/v1';
+const _envUrl = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = _envUrl ? (_envUrl.endsWith('/api/v1') ? _envUrl : _envUrl.replace(/\/$/, '') + '/api/v1') : 'https://kid-s-backend.onrender.com/api/v1';
 
 const playSound = (type) => {
   try {
@@ -165,18 +166,42 @@ const LetterBuilder = () => {
   if (!quiz || !letterData) return <FunLoader message="Loading Letter Builder..." />;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-[100dvh] overflow-hidden flex flex-col max-w-4xl mx-auto p-4">
-      {isFinished && <ConfettiEffect />}
-      
-      <div className="flex-none text-center mb-4">
-        <h1 className="text-3xl md:text-4xl font-fredoka font-bold gradient-text">Build the Letter!</h1>
-        <p className="text-lg text-gray-600 mt-1">Drag the colorful blocks to build the shape.</p>
-        <p className="text-md font-bold text-kid-purple mt-1">Moves: {moves}</p>
+    <div className="absolute inset-0 z-[100] bg-kid-bg flex flex-col items-center justify-center overflow-hidden">
+      {/* Dynamic Background */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <motion.div 
+          className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-kid-primary/20 blur-[100px] mix-blend-multiply"
+          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div 
+          className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-kid-yellow/20 blur-[150px] mix-blend-multiply"
+          animate={{ scale: [1, 1.1, 1], x: [0, -40, 0], y: [0, -50, 0] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
       </div>
 
-      <div className="flex-1 min-h-0 flex flex-col md:flex-row gap-8 justify-center items-center overflow-y-auto hide-scrollbar pb-4">
+      <button 
+        onClick={() => navigate('/class-dashboard')}
+        className="absolute top-4 left-4 z-[60] bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] font-bold text-slate-600 flex items-center gap-2 border-2 border-slate-200 hover:bg-white transition-colors"
+      >
+        ⬅️ <span className="hidden sm:inline">Back</span>
+      </button>
+
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full w-full flex flex-col max-w-5xl mx-auto p-2 z-10 pt-14 sm:pt-2">
+        {isFinished && <ConfettiEffect />}
+        
+        <div className="flex-none text-center mb-2 mt-0 sm:ml-24">
+          <div className="glass-panel px-4 py-1 sm:px-6 sm:py-2 inline-block border-white/60">
+            <h1 className="text-lg md:text-xl font-baloo font-black gradient-text">Build the Letter!</h1>
+            <p className="text-xs sm:text-sm font-bold text-slate-500 mt-0 font-nunito drop-shadow-sm">Drag the blocks to build the shape.</p>
+          </div>
+        </div>
+
+        <div className="flex-1 min-h-0 flex flex-col md:flex-row gap-2 sm:gap-4 lg:gap-8 justify-center items-center overflow-y-auto hide-scrollbar pb-4 px-1">
         {/* The Letter Outline Canvas */}
-        <div className="relative w-64 h-64 bg-white/50 rounded-3xl border-8 border-dashed border-gray-300 shadow-xl flex-shrink-0">
+        <div className="relative w-48 h-48 sm:w-64 sm:h-64 md:w-96 md:h-96 glass-panel border-[3px] sm:border-[6px] border-dashed border-white/60 flex-shrink-0 flex items-center justify-center p-2 sm:p-4 md:p-8 bg-white/40 transform scale-[0.6] sm:scale-[0.8] md:scale-100 origin-center">
+          <div className="relative w-full h-full max-w-[200px] max-h-[200px] mx-auto">
           {letterData.parts.map(part => {
             const isPlaced = placedParts.includes(part.id);
             return (
@@ -184,7 +209,7 @@ const LetterBuilder = () => {
                 key={part.id}
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, part.id)}
-                className={`absolute ${part.class} transition-all duration-300 ${isPlaced ? 'opacity-100 shadow-lg scale-100' : 'opacity-20 bg-gray-400 scale-95'}`}
+                className={`absolute ${part.class} transition-all duration-300 border-2 sm:border-4 border-transparent ${isPlaced ? 'opacity-100 shadow-[0_4px_0_0_rgba(0,0,0,0.2)] scale-100 border-white/40' : 'opacity-20 bg-slate-300 scale-95 border-slate-400'}`}
               />
             );
           })}
@@ -194,19 +219,20 @@ const LetterBuilder = () => {
               <motion.div 
                 initial={{ opacity: 0, scale: 0 }} 
                 animate={{ opacity: 1, scale: 1 }} 
-                className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 rounded-2xl backdrop-blur-sm z-10"
+                className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 backdrop-blur-md rounded-2xl sm:rounded-[2rem] shadow-inner border border-white z-10"
               >
-                <div className="text-6xl">{letterData.emoji}</div>
-                <div className="text-3xl font-bold text-kid-primary mt-2">{letterData.word}</div>
+                <div className="text-[4rem] sm:text-[6rem] drop-shadow-md">{letterData.emoji}</div>
+                <div className="text-2xl sm:text-4xl font-black font-baloo text-kid-primary-dark mt-2 sm:mt-4 drop-shadow-sm">{letterData.word}</div>
               </motion.div>
             )}
           </AnimatePresence>
+          </div>
         </div>
 
         {/* Pieces Tray */}
-        <div className="bg-white/80 p-6 rounded-3xl shadow-xl border-4 border-kid-yellow w-full md:w-auto min-w-[200px]">
-          <h2 className="text-2xl font-bold text-gray-700 w-full text-center mb-6">Pieces</h2>
-          <div className="flex flex-col gap-6 items-center">
+        <div className="glass-panel p-2 sm:p-4 md:p-8 w-full md:w-auto min-w-[150px] sm:min-w-[200px] flex-shrink-0 h-fit max-h-full overflow-y-auto hide-scrollbar border-white/60">
+          <h2 className="text-xl sm:text-3xl font-black font-baloo text-kid-primary-dark w-full text-center mb-2 sm:mb-4 md:mb-8 drop-shadow-sm">Pieces</h2>
+          <div className="flex flex-row md:flex-col gap-2 sm:gap-4 md:gap-8 justify-center items-center flex-wrap">
             {letterData.parts.map(part => {
               if (placedParts.includes(part.id)) return null;
               return (
@@ -214,12 +240,12 @@ const LetterBuilder = () => {
                   key={`tray-${part.id}`}
                   draggable
                   onDragStart={(e) => handleDragStart(e, part.id)}
-                  className={`cursor-grab active:cursor-grabbing hover:scale-105 transition-transform shadow-md ${part.class} !relative !top-auto !left-auto`}
+                  className={`cursor-grab active:cursor-grabbing hover:scale-110 transition-transform shadow-[0_4px_8px_rgba(0,0,0,0.1),inset_0_2px_4px_rgba(255,255,255,0.6)] border border-white/50 ${part.class} !relative !top-auto !left-auto transform scale-[0.5] sm:scale-[0.7] md:scale-100`}
                 />
               );
             })}
             {letterData.parts.every(p => placedParts.includes(p.id)) && (
-              <div className="text-green-500 font-bold text-xl py-4">Great Job! 🌟</div>
+              <div className="text-green-500 font-black text-lg sm:text-2xl py-2 sm:py-4 w-full text-center">Great Job! 🌟</div>
             )}
           </div>
         </div>
@@ -230,15 +256,16 @@ const LetterBuilder = () => {
           <motion.div 
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            className="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-white rounded-full px-8 py-4 shadow-2xl border-4 border-green-400 text-center z-50 flex gap-4 items-center"
+            className="fixed bottom-4 left-1/2 transform -translate-x-1/2 glass-panel px-6 py-4 sm:px-10 sm:py-8 text-center z-50 flex flex-col md:flex-row gap-4 sm:gap-6 items-center shadow-2xl border-white/80 w-[90%] sm:w-auto max-w-md"
           >
-            <span className="text-2xl font-bold text-green-600">Letter Built!</span>
-            <button onClick={() => navigate('/class-dashboard')} className="btn-primary py-2 px-6">
+            <span className="text-2xl sm:text-4xl font-black font-baloo gradient-text">Letter Built!</span>
+            <button onClick={() => navigate('/class-dashboard')} className="btn-chunky py-2 px-6 sm:py-4 sm:px-8 text-xl sm:text-2xl bg-gradient-to-b from-kid-green to-kid-green-dark shadow-[0_4px_8px_rgba(110,231,183,0.3),inset_0_2px_4px_rgba(255,255,255,0.4)]">
               Dashboard
             </button>
           </motion.div>
         )}
       </AnimatePresence>
+      </motion.div>
 
       <style>{`
         .hide-scrollbar::-webkit-scrollbar {
@@ -249,7 +276,7 @@ const LetterBuilder = () => {
           scrollbar-width: none;
         }
       `}</style>
-    </motion.div>
+    </div>
   );
 };
 

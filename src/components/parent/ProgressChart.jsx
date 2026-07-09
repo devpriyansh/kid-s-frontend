@@ -57,7 +57,26 @@ const ProgressChart = ({ recentActivities = [] }) => {
     ],
   };
 
-  return <Bar data={data} />;
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top',
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true
+      }
+    }
+  };
+
+  return (
+    <div className="absolute inset-0 w-full h-full p-2 sm:p-4">
+      <Bar data={data} options={options} />
+    </div>
+  );
 };
 
 export default ProgressChart;

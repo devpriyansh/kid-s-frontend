@@ -8,6 +8,53 @@ import ModuleCard from '../components/class/ModuleCard';
 import ClassBadge from '../components/common/ClassBadge';
 import Mascot from '../components/common/Mascot';
 import { useProgress } from '../hooks/useProgress';
+import { BookOpen, Palette, Gamepad2, Brain, HandMetal, Puzzle, Sparkles, Bot, PlayCircle } from 'lucide-react';
+
+const getGradientClasses = (colorName) => {
+  switch (colorName) {
+    case 'kid-primary': return 'from-kid-primary to-kid-primary-dark';
+    case 'kid-secondary': return 'from-kid-secondary to-kid-secondary-dark';
+    case 'kid-yellow': return 'from-kid-yellow to-kid-yellow-dark';
+    case 'kid-yellow-dark': return 'from-kid-yellow to-kid-yellow-dark';
+    case 'kid-purple': return 'from-kid-purple to-kid-purple-dark';
+    case 'kid-green': return 'from-kid-green to-kid-green-dark';
+    case 'kid-pink': return 'from-kid-secondary to-kid-secondary-dark';
+    default: return 'from-kid-primary to-kid-primary-dark';
+  }
+};
+
+const PremiumGameCard = ({ title, icon, colorClass, onClick, isImage = false }) => {
+  return (
+    <motion.div
+      whileHover={{ scale: 1.05, y: -8 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={onClick}
+      className="relative glass-card overflow-hidden cursor-pointer group flex flex-col aspect-[4/5] shadow-[0_12px_40px_rgba(0,0,0,0.12)] border-4 border-white"
+    >
+      <div className={`absolute inset-0 bg-gradient-to-br from-white/60 to-${colorClass}/20 pointer-events-none`} />
+
+      <div className="flex-1 flex items-center justify-center relative z-10 p-6">
+        {isImage ? (
+          <img src={icon} alt={title} className="w-full h-full object-contain drop-shadow-2xl group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500" />
+        ) : (
+          <div className="text-[6rem] sm:text-[8rem] drop-shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-transform duration-500 leading-none">
+            {icon}
+          </div>
+        )}
+      </div>
+
+      <div className="bg-white/95 backdrop-blur-xl p-4 sm:p-5 text-center border-t-4 border-white relative z-10 shadow-[0_-8px_20px_rgba(0,0,0,0.08)]">
+        <h3 className="text-xl sm:text-2xl font-black font-baloo text-kid-text truncate drop-shadow-sm">{title}</h3>
+      </div>
+
+      <div className="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 backdrop-blur-[2px] transition-all duration-300 flex items-center justify-center z-20">
+        <div className={`btn-chunky bg-gradient-to-b ${getGradientClasses(colorClass)} shadow-[0_10px_25px_rgba(0,0,0,0.4),inset_0_4px_8px_rgba(255,255,255,0.4)] scale-75 group-hover:scale-100 transition-transform duration-300 pointer-events-none text-2xl px-6 py-3 border-2 border-white/60`}>
+          <PlayCircle size={36} strokeWidth={3} /> Play!
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 
 const ClassDashboard = () => {
   const { selectedClass } = useClass();
@@ -26,7 +73,8 @@ const ClassDashboard = () => {
     const fetchQuizzes = async () => {
       try {
         const token = localStorage.getItem('token');
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://kid-s-backend.onrender.com/api/v1';
+        const _envUrl = import.meta.env.VITE_API_BASE_URL;
+        const API_BASE_URL = _envUrl ? (_envUrl.endsWith('/api/v1') ? _envUrl : _envUrl.replace(/\/$/, '') + '/api/v1') : 'https://kid-s-backend.onrender.com/api/v1';
         const res = await fetch(`${API_BASE_URL}/quiz/list/${selectedKid?.age || 'nursery'}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -42,17 +90,16 @@ const ClassDashboard = () => {
     fetchQuizzes();
   }, [selectedClass, navigate, selectedKid]);
 
-  if (!selectedClass) return null;
-
   const classData = getClass(selectedClass);
-  if (!classData) return <div>Class not found</div>;
 
   // Calculate overall progress
   const totalLessons = useMemo(() => {
+    if (!classData) return 0;
     return classData.modules.reduce((sum, mod) => sum + (mod.lessons?.length || 0), 0);
   }, [classData]);
 
   const completedLessons = useMemo(() => {
+    if (!classData) return 0;
     return classData.modules.reduce((sum, mod) => {
       const prog = getModuleProgress(mod.id, mod.lessons?.length || 0);
       return sum + prog.completed;
@@ -65,115 +112,94 @@ const ClassDashboard = () => {
 
   const overallProgress = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
 
+  if (!selectedClass) return null;
+  if (!classData) return <div>Class not found</div>;
+
   // Determine available tabs based on quizzes
   const availableTabs = [
-    { id: 'learning', label: '📚 Learning', color: 'bg-kid-primary text-white' },
-    { id: 'coloring', label: '🎨 Coloring', color: 'bg-kid-purple text-white' }
+    { id: 'learning', label: 'Learning', icon: BookOpen, color: 'kid-primary' },
+    { id: 'coloring', label: 'Coloring', icon: Palette, color: 'kid-purple' }
   ];
 
   if (quizzes.some(q => !q.title.match(/\[(Memory|DragDrop|Puzzle|Rainbow|Letter|Shadow|Fishing|Story)\]/))) {
-    availableTabs.push({ id: 'quizzes', label: '🎮 Quizzes', color: 'bg-kid-yellow text-white text-shadow-sm' });
+    availableTabs.push({ id: 'quizzes', label: 'Quizzes', icon: Gamepad2, color: 'kid-yellow-dark' });
   }
   if (quizzes.some(q => q.title.includes('[Memory]'))) {
-    availableTabs.push({ id: 'memory', label: '🧠 Memory', color: 'bg-kid-secondary text-white' });
+    availableTabs.push({ id: 'memory', label: 'Memory', icon: Brain, color: 'kid-secondary' });
   }
   if (quizzes.some(q => q.title.includes('[DragDrop]'))) {
-    availableTabs.push({ id: 'dragdrop', label: '🖐️ Drag & Drop', color: 'bg-kid-primary text-white' });
+    availableTabs.push({ id: 'dragdrop', label: 'Drag & Drop', icon: HandMetal, color: 'kid-primary' });
   }
   if (quizzes.some(q => q.title.includes('[Puzzle]'))) {
-    availableTabs.push({ id: 'puzzle', label: '🧩 Puzzles', color: 'bg-kid-pink text-white' });
+    availableTabs.push({ id: 'puzzle', label: 'Puzzles', icon: Puzzle, color: 'kid-pink' });
   }
   if (quizzes.some(q => q.title.match(/\[(Rainbow|Letter|Shadow|Fishing|Story)\]/))) {
-    availableTabs.push({ id: 'minigames', label: '🌟 Mini-Games', color: 'bg-gradient-to-r from-kid-primary to-kid-purple text-white' });
+    availableTabs.push({ id: 'minigames', label: 'Mini-Games', icon: Sparkles, color: 'kid-green' });
   }
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="min-h-[100dvh] flex flex-col pb-20 max-w-7xl mx-auto px-4"
+      className="h-full flex flex-col hide-scrollbar"
     >
-      {/* Hero Header */}
-      <div className="relative glass-card p-6 md:p-8 mb-6 overflow-hidden flex-none">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-kid-yellow/20 to-kid-pink/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-kid-purple/10 to-kid-primary/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
-        
-        <div className="relative z-10 flex flex-wrap items-center gap-4">
-          <ClassBadge classId={selectedClass} size="lg" />
-          <h1 className="text-3xl md:text-4xl font-fredoka font-bold gradient-text">
-            {classData.label} Dashboard
-          </h1>
-          <span className="ml-auto text-xl font-semibold text-gray-700 flex items-center gap-2 bg-white/50 px-4 py-2 rounded-full shadow-sm">
-            👤 {selectedKid?.name}
-          </span>
-        </div>
+      {/* Minimal Header */}
+      <div className="flex-none mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-white/60 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/80 shadow-sm">
+          <div className="flex items-center gap-3">
+            <ClassBadge classId={selectedClass} size="sm" />
+            <h1 className="text-xl sm:text-2xl font-baloo font-black text-kid-primary-dark">
+              {classData.label}
+            </h1>
+          </div>
 
-        {/* Stats Row */}
-        <div className="relative z-10 mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 text-center shadow-sm">
-            <p className="text-3xl font-bold text-kid-purple">{completedLessons}</p>
-            <p className="text-sm text-gray-600 font-bold">Lessons Done</p>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 bg-kid-yellow/20 px-3 py-1.5 rounded-xl text-kid-yellow-dark font-bold text-sm sm:text-base border border-kid-yellow/30 shadow-inner">
+              <Sparkles size={18} className="fill-kid-yellow-dark" /> {totalStars} Stars
+            </div>
+            <div className="flex items-center gap-2 bg-white/80 px-3 py-1.5 rounded-xl font-bold text-kid-text shadow-sm text-sm sm:text-base border border-slate-100">
+              <span className="drop-shadow-sm">{selectedKid?.avatar || '👦'}</span> <span className="hidden sm:inline">{selectedKid?.name}</span>
+            </div>
           </div>
-          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 text-center shadow-sm">
-            <p className="text-3xl font-bold text-kid-yellow">⭐ {totalStars}</p>
-            <p className="text-sm text-gray-600 font-bold">Stars Earned</p>
-          </div>
-          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 text-center shadow-sm">
-            <p className="text-3xl font-bold text-kid-primary">{Math.round(overallProgress)}%</p>
-            <p className="text-sm text-gray-600 font-bold">Overall Progress</p>
-          </div>
-          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 text-center shadow-sm">
-            <p className="text-3xl font-bold text-kid-secondary">🏅 Lvl {selectedKid?.level || 1}</p>
-            <p className="text-sm text-gray-600 font-bold">Current Level</p>
-          </div>
-        </div>
-
-        {/* AI Voice Tutor CTA */}
-        <div className="relative z-10 mt-6 flex justify-center">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/ai-tutor')}
-            className="bg-gradient-to-r from-kid-primary to-kid-purple text-white px-8 py-3 rounded-full font-bold text-xl shadow-lg flex items-center gap-3 border-4 border-white animate-bounce-slow"
-          >
-            <span className="text-3xl">🦉</span> Talk to Hootie the AI Tutor!
-          </motion.button>
         </div>
       </div>
 
       {/* Tabs Navigation */}
-      <div className="w-full overflow-x-auto hide-scrollbar mb-8 flex-none py-2 px-2 -mx-2">
-        <div className="flex gap-3 min-w-max">
-          {availableTabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-6 py-3 rounded-full font-bold text-lg transition-all duration-300 shadow-md whitespace-nowrap ${
-                activeTab === tab.id 
-                  ? `${tab.color} scale-105 ring-4 ring-offset-2 ring-kid-primary/30` 
-                  : 'bg-white text-gray-600 hover:bg-gray-50 hover:scale-105'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+      <div className="flex-none mb-4 relative z-20">
+        <div className="flex overflow-x-auto hide-scrollbar gap-3 pb-2 px-1">
+          {availableTabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-baloo font-black text-lg transition-all border whitespace-nowrap overflow-hidden relative focus:outline-none focus-visible:ring-4 focus-visible:ring-white/50 ${isActive
+                    ? `bg-gradient-to-b ${getGradientClasses(tab.color)} text-white border-white/40 shadow-[0_8px_16px_rgba(0,0,0,0.1),inset_0_4px_8px_rgba(255,255,255,0.4)]`
+                    : 'bg-white/60 backdrop-blur-sm text-slate-500 hover:text-slate-700 hover:bg-white/80 border-white/80 shadow-[0_4px_8px_rgba(0,0,0,0.05)]'
+                  }`}
+              >
+                <Icon size={24} strokeWidth={isActive ? 2.5 : 2} /> {tab.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Tab Content Area */}
-      <div className="flex-1 relative">
+      <div className="flex-1 overflow-y-auto hide-scrollbar pb-12 relative">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.2 }}
             className="w-full"
           >
             {/* Learning Modules */}
             {activeTab === 'learning' && (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 px-2 pt-4">
                 {classData.modules.map((module) => {
                   const total = module.lessons?.length || 0;
                   const prog = getModuleProgress(module.id, total);
@@ -193,116 +219,80 @@ const ClassDashboard = () => {
 
             {/* Coloring Games */}
             {activeTab === 'coloring' && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="glass-card p-6 text-center cursor-pointer hover:shadow-2xl transition border-4 border-kid-purple/30 bg-gradient-to-br from-white to-kid-purple/10"
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 sm:gap-8 px-2 pt-4">
+                <PremiumGameCard
+                  title="Coloring Book"
+                  icon="🎨"
+                  colorClass="kid-purple"
                   onClick={() => navigate('/coloring')}
-                >
-                  <div className="text-6xl mb-4">🎨</div>
-                  <h3 className="text-xl font-bold text-gray-800">Coloring Book</h3>
-                  <p className="text-sm text-gray-600 mt-2">15 amazing pictures to color! Unleash your creativity.</p>
-                  <div className="mt-4 inline-block bg-kid-primary text-white px-6 py-2 rounded-full text-lg font-bold shadow-md">
-                    Start Coloring!
-                  </div>
-                </motion.div>
+                />
               </div>
             )}
 
             {/* Quizzes */}
             {activeTab === 'quizzes' && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 sm:gap-8 px-2 pt-4">
                 {quizzes.filter(q => !q.title.match(/\[(Memory|DragDrop|Puzzle|Rainbow|Letter|Shadow|Fishing|Story)\]/)).map((quiz) => (
-                  <motion.div
+                  <PremiumGameCard
                     key={quiz.id}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="glass-card p-6 text-center cursor-pointer hover:shadow-2xl transition border-4 border-kid-yellow/30 bg-white/80"
+                    title={quiz.title}
+                    icon={quiz.image_url || '✨'}
+                    colorClass="kid-yellow"
                     onClick={() => navigate(`/quiz/${quiz.id}`)}
-                  >
-                    <div className="text-6xl mb-4">{quiz.image_url || '✨'}</div>
-                    <h3 className="text-xl font-bold text-gray-800">{quiz.title}</h3>
-                    <p className="text-sm text-gray-600 mt-2">{quiz.description}</p>
-                    <div className="mt-4 inline-block bg-kid-purple text-white px-4 py-1 rounded-full text-sm font-bold shadow-md">
-                      Play Now!
-                    </div>
-                  </motion.div>
+                  />
                 ))}
               </div>
             )}
 
             {/* Memory Games */}
             {activeTab === 'memory' && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 sm:gap-8 px-2 pt-4">
                 {quizzes.filter(q => q.title.includes('[Memory]')).map((quiz) => (
-                  <motion.div
+                  <PremiumGameCard
                     key={quiz.id}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="glass-card p-6 text-center cursor-pointer hover:shadow-2xl transition border-4 border-kid-secondary/30 bg-white/80"
+                    title={quiz.title.replace('[Memory] ', '')}
+                    icon={quiz.image_url || '🃏'}
+                    colorClass="kid-secondary"
                     onClick={() => navigate(`/memory/${quiz.id}`)}
-                  >
-                    <div className="text-6xl mb-4">{quiz.image_url || '🃏'}</div>
-                    <h3 className="text-xl font-bold text-gray-800">{quiz.title.replace('[Memory] ', '')}</h3>
-                    <p className="text-sm text-gray-600 mt-2">{quiz.description}</p>
-                    <div className="mt-4 inline-block bg-kid-secondary text-white px-4 py-1 rounded-full text-sm font-bold shadow-md">
-                      Play Match!
-                    </div>
-                  </motion.div>
+                  />
                 ))}
               </div>
             )}
 
             {/* Drag & Drop */}
             {activeTab === 'dragdrop' && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 sm:gap-8 px-2 pt-4">
                 {quizzes.filter(q => q.title.includes('[DragDrop]')).map((quiz) => (
-                  <motion.div
+                  <PremiumGameCard
                     key={quiz.id}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="glass-card p-6 text-center cursor-pointer hover:shadow-2xl transition border-4 border-kid-primary/30 bg-white/80"
+                    title={quiz.title.replace('[DragDrop] ', '')}
+                    icon={quiz.image_url || '🖐️'}
+                    colorClass="kid-primary"
                     onClick={() => navigate(`/dragdrop/${quiz.id}`)}
-                  >
-                    <div className="text-6xl mb-4">{quiz.image_url || '🖐️'}</div>
-                    <h3 className="text-xl font-bold text-gray-800">{quiz.title.replace('[DragDrop] ', '')}</h3>
-                    <p className="text-sm text-gray-600 mt-2">{quiz.description}</p>
-                    <div className="mt-4 inline-block bg-kid-primary text-white px-4 py-1 rounded-full text-sm font-bold shadow-md">
-                      Play!
-                    </div>
-                  </motion.div>
+                  />
                 ))}
               </div>
             )}
 
             {/* Puzzles */}
             {activeTab === 'puzzle' && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 sm:gap-8 px-2 pt-4">
                 {quizzes.filter(q => q.title.includes('[Puzzle]')).map((quiz) => (
-                  <motion.div
+                  <PremiumGameCard
                     key={quiz.id}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="glass-card p-6 text-center cursor-pointer hover:shadow-2xl transition border-4 border-kid-pink/30 bg-white/80"
+                    title={quiz.title.replace('[Puzzle] ', '')}
+                    icon={quiz.image_url}
+                    isImage={true}
+                    colorClass="kid-pink"
                     onClick={() => navigate(`/puzzle/${quiz.id}`)}
-                  >
-                    <div className="text-6xl mb-4 h-16 w-16 mx-auto rounded-md overflow-hidden shadow-sm">
-                      <img src={quiz.image_url} alt="Puzzle Thumbnail" className="w-full h-full object-cover" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-800">{quiz.title.replace('[Puzzle] ', '')}</h3>
-                    <p className="text-sm text-gray-600 mt-2">{quiz.description}</p>
-                    <div className="mt-4 inline-block bg-kid-pink text-white px-4 py-1 rounded-full text-sm font-bold shadow-md">
-                      Solve Puzzle!
-                    </div>
-                  </motion.div>
+                  />
                 ))}
               </div>
             )}
 
             {/* Mini-Games */}
             {activeTab === 'minigames' && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 sm:gap-8 px-2 pt-4">
                 {quizzes.filter(q => q.title.match(/\[(Rainbow|Letter|Shadow|Fishing|Story)\]/)).map((quiz) => {
                   let path = '';
                   if (quiz.title.includes('[Rainbow]')) path = `/sorting/${quiz.id}`;
@@ -312,20 +302,13 @@ const ClassDashboard = () => {
                   if (quiz.title.includes('[Story]')) path = `/story/${quiz.id}`;
 
                   return (
-                    <motion.div
+                    <PremiumGameCard
                       key={quiz.id}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="glass-card p-6 text-center cursor-pointer hover:shadow-2xl transition border-4 border-kid-primary/30 bg-gradient-to-br from-white to-gray-50"
+                      title={quiz.title.replace(/\[.*?\]\s*/, '')}
+                      icon={quiz.image_url}
+                      colorClass="kid-green"
                       onClick={() => navigate(path)}
-                    >
-                      <div className="text-5xl mb-4 drop-shadow-md">{quiz.image_url}</div>
-                      <h3 className="text-xl font-bold text-gray-800 whitespace-pre-wrap">{quiz.title.replace(/\[.*?\]\s*/, '')}</h3>
-                      <p className="text-sm text-gray-600 mt-2 h-10 overflow-hidden">{quiz.description}</p>
-                      <div className="mt-4 inline-block bg-kid-primary text-white px-4 py-1 rounded-full text-sm font-bold shadow-md">
-                        Play Now!
-                      </div>
-                    </motion.div>
+                    />
                   );
                 })}
               </div>
@@ -335,18 +318,19 @@ const ClassDashboard = () => {
       </div>
 
       {/* Floating Mascot */}
-      <Mascot className="fixed bottom-6 right-6 w-20 h-20 animate-bounce-slow z-50 pointer-events-none" />
-      
-      {/* Hide scrollbar styles */}
-      <style>{`
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .hide-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
+      <div className="fixed bottom-6 right-6 z-50 pointer-events-none drop-shadow-2xl">
+        <Mascot className="w-24 h-24 animate-float" />
+      </div>
+
+      {/* AI Voice Tutor FAB (Mobile friendly) */}
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => navigate('/ai-tutor')}
+        className="fixed bottom-6 left-6 z-50 bg-white/80 backdrop-blur-md border border-kid-primary/40 rounded-full p-4 shadow-[0_8px_20px_rgba(96,165,250,0.3),inset_0_2px_4px_rgba(255,255,255,0.8)] flex items-center justify-center text-kid-primary-dark hover:bg-white transition-colors"
+      >
+        <Bot size={36} strokeWidth={2.5} />
+      </motion.button>
     </motion.div>
   );
 };
