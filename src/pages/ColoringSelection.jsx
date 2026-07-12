@@ -2,8 +2,21 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { coloringPages } from '../data/coloringPages';
+import { useDashboard } from '../hooks/useKids';
+import { useKid } from '../contexts/KidContext';
+import { CheckCircle2 } from 'lucide-react';
 
 const ColoringSelection = () => {
+  const { data: dashboardData } = useDashboard();
+  const { selectedKid } = useKid();
+
+  const playedColoringTitles = React.useMemo(() => {
+    if (!dashboardData?.gameProgress) return new Set();
+    const kidProgress = dashboardData.gameProgress.filter(g => String(g.child_id) === String(selectedKid?.id));
+    // Filter coloring games that have been completed
+    const played = kidProgress.filter(g => g.quiz?.title?.includes('[Coloring]')).map(g => g.quiz.title.replace('[Coloring] ', '').replace(' 🎨', '').trim());
+    return new Set(played);
+  }, [dashboardData, selectedKid]);
   return (
     <div className="h-full w-full bg-transparent relative overflow-hidden flex flex-col p-4 md:p-8">
       {/* Background handled by App.jsx */}
@@ -25,8 +38,17 @@ const ColoringSelection = () => {
                 <motion.div 
                   whileHover={{ scale: 1.05, y: -5 }} 
                   whileTap={{ scale: 0.95 }}
-                  className="glass-panel p-6 cursor-pointer text-center border-white/60 hover:border-white transition-all duration-300"
+                  className="glass-panel p-6 cursor-pointer text-center border-white/60 hover:border-white transition-all duration-300 relative"
                 >
+                  {playedColoringTitles.has(page.title) && (
+                    <motion.div 
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute top-3 right-3 z-30 bg-kid-green text-white p-1 rounded-full shadow-md"
+                    >
+                      <CheckCircle2 size={24} strokeWidth={3} />
+                    </motion.div>
+                  )}
                   <div 
                     className="w-full aspect-square bg-white/60 rounded-2xl p-4 shadow-[inset_0_4px_12px_rgba(0,0,0,0.05)] border-[3px] border-white/80 mb-6 pointer-events-none"
                     dangerouslySetInnerHTML={{ __html: page.referenceSvgContent }} 

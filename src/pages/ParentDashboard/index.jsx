@@ -4,14 +4,12 @@ import { motion } from 'framer-motion';
 import { useDashboard } from '../../hooks/useKids';
 import ChildCard from '../../components/parent/ChildCard';
 import ProgressChart from '../../components/parent/ProgressChart';
-import FunLoader from '../../components/common/FunLoader';
+import { DashboardCardSkeleton, GraphSkeleton, ListSkeleton } from '../../components/common/Skeletons';
 import { UserPlus, Activity, Star, Coins, LayoutDashboard } from 'lucide-react';
 
 const ParentDashboard = () => {
   const { data = { kids: [], recentActivities: [] }, isLoading } = useDashboard();
   const { kids, recentActivities } = data;
-
-  if (isLoading) return <FunLoader message="Loading dashboard..." />;
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="h-full flex flex-col hide-scrollbar">
@@ -38,7 +36,7 @@ const ParentDashboard = () => {
             </h2>
             <div className="glass-card p-4 sm:p-6 h-[350px] w-full relative overflow-hidden flex flex-col min-w-0">
               <div className="flex-1 w-full relative">
-                <ProgressChart recentActivities={recentActivities} />
+                {isLoading ? <GraphSkeleton /> : <ProgressChart recentActivities={recentActivities} />}
               </div>
             </div>
           </div>
@@ -48,7 +46,9 @@ const ParentDashboard = () => {
               <Star size={24} className="text-kid-yellow-dark" /> Recent Activities
             </h2>
             <div className="glass-card p-6 h-[350px] overflow-y-auto hide-scrollbar">
-              {recentActivities.length === 0 ? (
+              {isLoading ? (
+                <ListSkeleton rows={3} />
+              ) : recentActivities.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-slate-400">
                   <Star size={48} strokeWidth={1} className="mb-4 opacity-50" />
                   <p className="font-bold text-lg text-center">No activities yet.<br />Time to play some quizzes!</p>
@@ -61,7 +61,7 @@ const ParentDashboard = () => {
                         <span className="text-4xl drop-shadow-sm bg-white/80 p-3 rounded-2xl shadow-inner border border-white">{act.child?.avatar}</span>
                         <div>
                           <h3 className="font-bold font-baloo text-xl text-kid-text">{act.child?.name} completed {act.quiz?.title}</h3>
-                          <p className="text-sm font-bold text-slate-500">{new Date(act.created_at).toLocaleDateString()}</p>
+                          <p className="text-sm font-bold text-slate-500">{new Date(act.createdAt || act.created_at).toLocaleDateString()}</p>
                         </div>
                       </div>
                       <div className="text-right flex flex-col items-end gap-1">
@@ -83,9 +83,13 @@ const ParentDashboard = () => {
         <div className="pt-6">
           <h2 className="text-3xl font-baloo font-bold text-kid-text mb-6 drop-shadow-sm">Your Kids</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {kids.map((kid) => (
-              <ChildCard key={kid.id} kid={kid} />
-            ))}
+            {isLoading ? (
+              [...Array(3)].map((_, i) => <DashboardCardSkeleton key={i} />)
+            ) : (
+              kids.map((kid) => (
+                <ChildCard key={kid.id} kid={kid} />
+              ))
+            )}
           </div>
         </div>
       </div>

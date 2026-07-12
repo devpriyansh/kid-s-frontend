@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useKid } from '../contexts/KidContext';
+import { useQueryClient } from 'react-query';
 import ConfettiEffect from '../components/common/ConfettiEffect';
 import Mascot from '../components/common/Mascot';
 import { useReward } from '../contexts/RewardContext';
-import FunLoader from '../components/common/FunLoader';
+import { GameSkeleton } from '../components/common/Skeletons';
 import { Gamepad2, ArrowRight, CheckCircle2, Star, Coins, PlayCircle } from 'lucide-react';
 
 const _envUrl = import.meta.env.VITE_API_BASE_URL;
@@ -14,6 +15,7 @@ const API_BASE_URL = _envUrl ? (_envUrl.endsWith('/api/v1') ? _envUrl : _envUrl.
 const QuizActivity = () => {
   const { quizId } = useParams();
   const { selectedKid } = useKid();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   const [quiz, setQuiz] = useState(null);
@@ -49,7 +51,7 @@ const QuizActivity = () => {
     fetchQuiz();
   }, [quizId, selectedKid, navigate]);
 
-  if (loading) return <FunLoader message="Loading magical quiz..." />;
+  if (loading) return <GameSkeleton />;
   if (!quiz) return <div className="text-center py-20 text-2xl">Quiz not found! 😢</div>;
 
   const questions = quiz.questions || [];
@@ -93,7 +95,8 @@ const QuizActivity = () => {
           starsEarned,
           coinsEarned
         })
-      });
+      }); 
+      queryClient.invalidateQueries('dashboard');
     } catch (err) {
       console.error("Failed to submit result", err);
     }

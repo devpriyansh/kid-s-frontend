@@ -4,11 +4,16 @@ import { motion } from 'framer-motion';
 import { coloringPages } from '../data/coloringPages';
 import ConfettiEffect from '../components/common/ConfettiEffect';
 import { Undo2, Trash2, CheckCircle2 } from 'lucide-react';
+import { useKid } from '../contexts/KidContext';
+import { useQueryClient } from 'react-query';
+
+const _envUrl = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = _envUrl ? (_envUrl.endsWith('/api/v1') ? _envUrl : _envUrl.replace(/\/$/, '') + '/api/v1') : 'https://kid-s-backend.onrender.com/api/v1';
 
 const COLORS = [
-  '#ef4444', '#f97316', '#f59e0b', '#fcd34d', 
-  '#84cc16', '#22c55e', '#10b981', '#14b8a6', 
-  '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1', 
+  '#ef4444', '#f97316', '#A52A2A', '#f59e0b', '#fcd34d',
+  '#84cc16', '#22c55e', '#10b981', '#14b8a6',
+  '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1',
   '#8b5cf6', '#a855f7', '#d946ef', '#ec4899',
   '#f43f5e', '#ffffff', '#94a3b8', '#000000'
 ];
@@ -16,12 +21,14 @@ const COLORS = [
 const ColoringGame = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { selectedKid } = useKid();
+  const queryClient = useQueryClient();
   const page = coloringPages.find(p => p.id.toString() === id);
-  
+
   const [currentColor, setCurrentColor] = useState(COLORS[0]);
   const [history, setHistory] = useState([]);
   const [showConfetti, setShowConfetti] = useState(false);
-  
+
   const svgContainerRef = useRef(null);
 
   useEffect(() => {
@@ -35,10 +42,10 @@ const ColoringGame = () => {
   const handleSvgClick = (e) => {
     const target = e.target;
     const validTags = ['path', 'circle', 'rect', 'polygon', 'ellipse'];
-    
+
     if (validTags.includes(target.tagName.toLowerCase())) {
       const oldColor = target.getAttribute('fill') || 'white';
-      
+
       if (oldColor !== currentColor) {
         target.setAttribute('fill', currentColor);
         setHistory(prev => [...prev, { element: target, oldColor }]);
@@ -48,20 +55,20 @@ const ColoringGame = () => {
 
   const handleUndo = () => {
     if (history.length === 0) return;
-    
+
     const newHistory = [...history];
     const lastAction = newHistory.pop();
-    
+
     if (lastAction && lastAction.element) {
       lastAction.element.setAttribute('fill', lastAction.oldColor);
     }
-    
+
     setHistory(newHistory);
   };
 
   const handleClear = () => {
     if (!svgContainerRef.current) return;
-    
+
     const elements = svgContainerRef.current.querySelectorAll('path, circle, rect, polygon, ellipse');
     elements.forEach(el => {
       el.setAttribute('fill', 'white');
@@ -69,9 +76,52 @@ const ColoringGame = () => {
     setHistory([]);
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     setShowConfetti(true);
     setTimeout(() => setShowConfetti(false), 3000);
+
+    if (!selectedKid) return;
+
+    try {
+      const token = localStorage.getItem('token');
+
+      const res = await fetch(`${API_BASE_URL}/quiz/list/${selectedKid.age || 'nursery'}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const resData = await res.json();
+      const quizzes = resData.data?.result?.quizzes || [];
+
+      const coloringQuiz = quizzes.find(q => q.title.includes(`[Coloring] ${page.title}`));
+      console.log('coloringQuiz found:', coloringQuiz);
+
+      if (coloringQuiz) {
+        console.log('Submitting coloring quiz result...');
+        const submitRes = await fetch(`${API_BASE_URL}/quiz/submit`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            childId: selectedKid.id,
+            quizId: coloringQuiz.id,
+            score: 10,
+            starsEarned: 10,
+            coinsEarned: 5
+          })
+        });
+
+        const submitData = await submitRes.json();
+        console.log('Submit result response:', submitData);
+
+        // Refetch dashboard data so checkmarks and progress update
+        queryClient.invalidateQueries('dashboard');
+      } else {
+        console.log('Coloring quiz not found for title:', `[Coloring] ${page.title}`);
+      }
+    } catch (err) {
+      console.error("Failed to submit coloring result", err);
+    }
   };
 
   return (
@@ -87,19 +137,19 @@ const ColoringGame = () => {
       `}</style>
       {/* Dynamic Background */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-        <motion.div 
+        <motion.div
           className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-kid-primary/20 blur-[100px] mix-blend-multiply"
           animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
           transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
         />
-        <motion.div 
+        <motion.div
           className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-kid-yellow/20 blur-[150px] mix-blend-multiply"
           animate={{ scale: [1, 1.1, 1], x: [0, -40, 0], y: [0, -50, 0] }}
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 1 }}
         />
       </div>
 
-      <button 
+      <button
         onClick={() => navigate('/coloring')}
         className="absolute top-4 left-4 z-[60] bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] font-bold text-slate-600 flex items-center gap-2 border-2 border-slate-200 hover:bg-white transition-colors"
       >
@@ -108,7 +158,7 @@ const ColoringGame = () => {
 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full w-full flex flex-col max-w-7xl mx-auto p-2 z-10 pt-14 sm:pt-2">
         {showConfetti && <ConfettiEffect />}
-        
+
         <div className="flex-none flex flex-col md:flex-row items-center justify-between mb-2 mt-0 sm:ml-24 gap-2">
           <div className="glass-panel px-4 py-1 sm:px-6 sm:py-2 border-white/60 inline-block">
             <h1 className="text-lg md:text-xl font-baloo font-black gradient-text drop-shadow-sm leading-tight">Coloring: {page.title}</h1>
@@ -127,11 +177,11 @@ const ColoringGame = () => {
         </div>
 
         <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-2 md:gap-4 overflow-hidden pb-2 px-1">
-          
+
           {/* Main Canvas */}
           <div className="flex-1 glass-panel p-2 sm:p-4 border-white/60 relative min-h-0 overflow-hidden flex justify-center items-center shadow-[inset_0_4px_12px_rgba(0,0,0,0.05)]">
             <div className="absolute inset-0 bg-white/40 rounded-[2rem] pointer-events-none"></div>
-            <div 
+            <div
               ref={svgContainerRef}
               className="w-full h-full cursor-crosshair svg-coloring-container relative z-10 drop-shadow-md flex items-center justify-center"
               onClick={handleSvgClick}
@@ -141,11 +191,11 @@ const ColoringGame = () => {
 
           {/* Sidebar Controls */}
           <div className="flex-none w-full lg:w-64 xl:w-80 flex flex-row lg:flex-col gap-2 overflow-y-auto hide-scrollbar pb-2">
-            
+
             {/* Reference Image */}
             <div className="glass-panel p-2 text-center border-white/60 relative flex-1 lg:flex-none max-w-[50%] lg:max-w-none">
               <h3 className="font-black font-baloo text-kid-primary-dark mb-1 sm:mb-2 text-lg sm:text-xl drop-shadow-sm">Reference</h3>
-              <div 
+              <div
                 className="w-full aspect-square bg-white/60 rounded-xl shadow-[inset_0_4px_12px_rgba(0,0,0,0.05)] p-2 pointer-events-none border-[2px] border-white/80 mx-auto max-h-[150px] max-w-[150px]"
                 dangerouslySetInnerHTML={{ __html: page.referenceSvgContent }}
               />
@@ -165,7 +215,7 @@ const ColoringGame = () => {
                 ))}
               </div>
             </div>
-            
+
           </div>
         </div>
       </motion.div>

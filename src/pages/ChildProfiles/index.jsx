@@ -4,10 +4,11 @@ import { motion } from 'framer-motion';
 import { useKids } from '../../hooks/useKids';
 import { useKid } from '../../contexts/KidContext';
 import Avatar from '../../components/common/Avatar';
+import { ProfileCardSkeleton } from '../../components/common/Skeletons';
 import { Users, Plus, Star, Smile } from 'lucide-react';
 
 const ChildProfiles = () => {
-  const { data: kids, refetch } = useKids();
+  const { data: kids, isLoading, refetch } = useKids();
   const { setSelectedKid } = useKid();
   const navigate = useNavigate();
   const [showCreate, setShowCreate] = useState(false);
@@ -68,24 +69,28 @@ const handleSelect = (kid) => {
 
       <div className="flex-1 flex items-center justify-center overflow-hidden">
         <div className="flex overflow-x-auto hide-scrollbar gap-6 pb-12 pt-4 px-4 snap-x snap-mandatory w-full max-w-6xl mx-auto">
-          {kids?.map((kid) => (
-            <motion.div
-              key={kid.id}
-              whileHover={{ scale: 1.05, y: -10 }}
-              whileTap={{ scale: 0.95 }}
-              className="snap-center shrink-0 w-64 glass-card p-8 text-center cursor-pointer border-4 border-slate-200 hover:border-kid-primary transition-all duration-300 relative group bg-white shadow-[0_8px_0_0_#E2E8F0] hover:shadow-[0_12px_0_0_#0284C7]"
-              onClick={() => handleSelect(kid)}
-            >
-              <div className="absolute inset-0 bg-kid-primary/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-[1.25rem]"></div>
-              <div className="relative z-10">
-                <Avatar emoji={kid.avatar} size="large" />
-                <h3 className="text-3xl font-fredoka font-black text-kid-text mt-6 mb-2">{kid.name}</h3>
-                <span className="font-bold text-kid-yellow-dark bg-kid-yellow/20 px-4 py-2 rounded-xl text-lg flex items-center justify-center gap-2">
-                  <Star size={20} className="fill-kid-yellow-dark" /> {kid.stars} stars
-                </span>
-              </div>
-            </motion.div>
-          ))}
+          {isLoading ? (
+            [...Array(3)].map((_, i) => <ProfileCardSkeleton key={i} />)
+          ) : (
+            kids?.map((kid) => (
+              <motion.div
+                key={kid.id}
+                whileHover={{ scale: 1.05, y: -10 }}
+                whileTap={{ scale: 0.95 }}
+                className="snap-center shrink-0 w-64 glass-card p-8 text-center cursor-pointer border-4 border-slate-200 hover:border-kid-primary transition-all duration-300 relative group bg-white shadow-[0_8px_0_0_#E2E8F0] hover:shadow-[0_12px_0_0_#0284C7]"
+                onClick={() => handleSelect(kid)}
+              >
+                <div className="absolute inset-0 bg-kid-primary/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-[1.25rem]"></div>
+                <div className="relative z-10">
+                  <Avatar emoji={kid.avatar} size="large" />
+                  <h3 className="text-3xl font-fredoka font-black text-kid-text mt-6 mb-2">{kid.name}</h3>
+                  <span className="font-bold text-kid-yellow-dark bg-kid-yellow/20 px-4 py-2 rounded-xl text-lg flex items-center justify-center gap-2">
+                    <Star size={20} className="fill-kid-yellow-dark" /> {kid.stars} stars
+                  </span>
+                </div>
+              </motion.div>
+            ))
+          )}
           
           <motion.div
             whileHover={{ scale: 1.05, y: -10 }}

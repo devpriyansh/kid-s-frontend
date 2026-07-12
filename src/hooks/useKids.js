@@ -29,7 +29,11 @@ const fetchDashboard = async () => {
     level: c.level,
   }));
 
-  return { kids, recentActivities: resData.data?.result?.recentActivities || [] };
+  return { 
+    kids, 
+    recentActivities: resData.data?.result?.recentActivities || [],
+    gameProgress: resData.data?.result?.gameProgress || []
+  };
 };
 
 export const useKids = () => {

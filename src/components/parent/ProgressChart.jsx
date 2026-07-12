@@ -25,9 +25,15 @@ const ProgressChart = ({ recentActivities = [] }) => {
   const activitiesDone = Array(7).fill(0);
 
   recentActivities.forEach(act => {
-    const actDate = new Date(act.created_at);
+    const actDate = new Date(act.createdAt || act.created_at);
+    
+    // Normalize both dates to midnight to accurately calculate calendar days ago
+    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const actDateMidnight = new Date(actDate.getFullYear(), actDate.getMonth(), actDate.getDate());
+    
     // Find how many days ago it was
-    const daysAgo = Math.floor((today - actDate) / (1000 * 60 * 60 * 24));
+    const daysAgo = Math.round((todayMidnight - actDateMidnight) / (1000 * 60 * 60 * 24));
+    
     if (daysAgo >= 0 && daysAgo < 7) {
       const index = 6 - daysAgo; // 6 is today, 0 is 6 days ago
       starsEarned[index] += act.stars_earned || 0;

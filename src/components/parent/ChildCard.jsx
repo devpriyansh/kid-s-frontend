@@ -1,33 +1,37 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { useQuery } from 'react-query';
 import Avatar from '../common/Avatar';
 import ProgressRing from '../common/ProgressRing';
-import { getClass } from '../../data/curriculum';
-import { Star, GraduationCap } from 'lucide-react';
+import { useDashboard } from '../../hooks/useKids';
+import { Star, GraduationCap, Gamepad2 } from 'lucide-react';
+
+const _envUrl = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = _envUrl ? (_envUrl.endsWith('/api/v1') ? _envUrl : _envUrl.replace(/\/$/, '') + '/api/v1') : 'https://kid-s-backend.onrender.com/api/v1';
+
+const fetchQuizzes = async (age) => {
+  const token = localStorage.getItem('token');
+  if (!token) return [];
+  const res = await fetch(`${API_BASE_URL}/quiz/list/${age || 'nursery'}`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const data = await res.json();
+  return data.data?.result?.quizzes || [];
+};
 
 const ChildCard = ({ kid }) => {
-  const progress = useMemo(() => {
-    if (!kid.id || !kid.age) return 0;
-    const classData = getClass(kid.age);
-    if (!classData) return 0;
+  const { data: dashboardData } = useDashboard();
+  const { data: quizzes = [] } = useQuery(['quizzes', kid.age], () => fetchQuizzes(kid.age));
 
-    const totalLessons = classData.modules.reduce((sum, mod) => sum + (mod.lessons?.length || 0), 0);
-    if (totalLessons === 0) return 0;
+  const completedCount = useMemo(() => {
+    if (!dashboardData?.gameProgress) return 0;
+    return dashboardData.gameProgress.filter(g => 
+      String(g.child_id) === String(kid.id) && g.completed
+    ).length;
+  }, [dashboardData, kid.id]);
 
-    const key = `progress_${kid.id}_${kid.age}`;
-    const stored = localStorage.getItem(key);
-    const progressData = stored ? JSON.parse(stored) : {};
-
-    let completedLessons = 0;
-    classData.modules.forEach(mod => {
-      const modProg = progressData[mod.id];
-      if (modProg && Array.isArray(modProg.completed)) {
-        completedLessons += modProg.completed.length;
-      }
-    });
-
-    return (completedLessons / totalLessons) * 100;
-  }, [kid]);
+  const totalCount = quizzes.length;
+  const progress = totalCount === 0 ? 0 : (completedCount / totalCount) * 100;
 
   return (
     <motion.div whileHover={{ scale: 1.02, y: -2 }} className="glass-card p-6 flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left relative overflow-hidden group border border-white/60 bg-white/40 backdrop-blur-md">
@@ -47,9 +51,14 @@ const ChildCard = ({ kid }) => {
             <Star size={16} className="fill-kid-yellow-dark" /> {kid.stars} stars
           </span>
         </div>
-        <div className="flex items-center justify-center sm:justify-start gap-3 mt-4 pt-3 border-t border-white/40">
+        <div className="flex items-center justify-center sm:justify-start gap-4 mt-4 pt-3 border-t border-white/40">
           <ProgressRing progress={progress} size={60} />
-          <span className="font-baloo font-bold text-lg text-slate-500">Level {kid.level || 1}</span>
+          <div className="flex flex-col text-left">
+            <span className="font-baloo font-bold text-lg text-slate-600 flex items-center gap-1">
+              <Gamepad2 size={18} /> {completedCount} / {totalCount} Games
+            </span>
+            <span className="text-sm font-bold text-slate-400 -mt-1">{Math.round(progress)}% Completed</span>
+          </div>
         </div>
       </div>
     </motion.div>

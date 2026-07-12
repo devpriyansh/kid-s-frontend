@@ -5,10 +5,12 @@ import { useClass } from '../contexts/ClassContext';
 import { useKid } from '../contexts/KidContext';
 import { getClass } from '../data/curriculum';
 import ModuleCard from '../components/class/ModuleCard';
-import ClassBadge from '../components/common/ClassBadge';
 import Mascot from '../components/common/Mascot';
+import ClassBadge from '../components/common/ClassBadge';
+import { CardSkeleton } from '../components/common/Skeletons';
 import { useProgress } from '../hooks/useProgress';
-import { BookOpen, Palette, Gamepad2, Brain, HandMetal, Puzzle, Sparkles, Bot, PlayCircle } from 'lucide-react';
+import { useDashboard } from '../hooks/useKids';
+import { BookOpen, Palette, Gamepad2, Brain, HandMetal, Puzzle, Sparkles, Bot, PlayCircle, CheckCircle2 } from 'lucide-react';
 
 const getGradientClasses = (colorName) => {
   switch (colorName) {
@@ -23,7 +25,7 @@ const getGradientClasses = (colorName) => {
   }
 };
 
-const PremiumGameCard = ({ title, icon, colorClass, onClick, isImage = false }) => {
+const PremiumGameCard = ({ title, icon, colorClass, onClick, isImage = false, isPlayed = false }) => {
   return (
     <motion.div
       whileHover={{ scale: 1.05, y: -8 }}
@@ -32,6 +34,16 @@ const PremiumGameCard = ({ title, icon, colorClass, onClick, isImage = false }) 
       className="relative glass-card overflow-hidden cursor-pointer group flex flex-col aspect-[4/5] shadow-[0_12px_40px_rgba(0,0,0,0.12)] border-4 border-white"
     >
       <div className={`absolute inset-0 bg-gradient-to-br from-white/60 to-${colorClass}/20 pointer-events-none`} />
+      
+      {isPlayed && (
+        <motion.div 
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className="absolute top-3 right-3 z-30 bg-kid-green text-white p-1 rounded-full shadow-md"
+        >
+          <CheckCircle2 size={24} strokeWidth={3} />
+        </motion.div>
+      )}
 
       <div className="flex-1 flex items-center justify-center relative z-10 p-6">
         {isImage ? (
@@ -61,8 +73,16 @@ const ClassDashboard = () => {
   const { selectedKid } = useKid();
   const navigate = useNavigate();
   const { getModuleProgress } = useProgress();
+  const { data: dashboardData } = useDashboard();
   const [quizzes, setQuizzes] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('learning');
+
+  const playedQuizIds = useMemo(() => {
+    if (!dashboardData?.gameProgress) return new Set();
+    const kidProgress = dashboardData.gameProgress.filter(g => String(g.child_id) === String(selectedKid?.id));
+    return new Set(kidProgress.map(g => g.quiz_id));
+  }, [dashboardData, selectedKid]);
 
   useEffect(() => {
     if (!selectedClass || !selectedKid) {
@@ -71,6 +91,7 @@ const ClassDashboard = () => {
     }
 
     const fetchQuizzes = async () => {
+      setIsLoading(true);
       try {
         const token = localStorage.getItem('token');
         const _envUrl = import.meta.env.VITE_API_BASE_URL;
@@ -84,6 +105,8 @@ const ClassDashboard = () => {
         }
       } catch (err) {
         console.error("Failed to fetch quizzes", err);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -200,20 +223,24 @@ const ClassDashboard = () => {
             {/* Learning Modules */}
             {activeTab === 'learning' && (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 px-2 pt-4">
-                {classData.modules.map((module) => {
-                  const total = module.lessons?.length || 0;
-                  const prog = getModuleProgress(module.id, total);
-                  return (
-                    <ModuleCard
-                      key={module.id}
-                      module={module}
-                      progress={prog}
-                      onSelect={() => {
-                        if (total > 0) navigate(`/lesson/${module.id}/0`);
-                      }}
-                    />
-                  );
-                })}
+                {isLoading ? (
+                  [...Array(10)].map((_, i) => <CardSkeleton key={i} />)
+                ) : (
+                  classData.modules.map((module) => {
+                    const total = module.lessons?.length || 0;
+                    const prog = getModuleProgress(module.id, total);
+                    return (
+                      <ModuleCard
+                        key={module.id}
+                        module={module}
+                        progress={prog}
+                        onSelect={() => {
+                          if (total > 0) navigate(`/lesson/${module.id}/0`);
+                        }}
+                      />
+                    );
+                  })
+                )}
               </div>
             )}
 
@@ -224,6 +251,7 @@ const ClassDashboard = () => {
                   title="Coloring Book"
                   icon="🎨"
                   colorClass="kid-purple"
+                  isPlayed={dashboardData?.gameProgress?.some(g => String(g.child_id) === String(selectedKid?.id) && g.quiz?.title?.includes('[Coloring]'))}
                   onClick={() => navigate('/coloring')}
                 />
               </div>
@@ -232,85 +260,110 @@ const ClassDashboard = () => {
             {/* Quizzes */}
             {activeTab === 'quizzes' && (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 sm:gap-8 px-2 pt-4">
-                {quizzes.filter(q => !q.title.match(/\[(Memory|DragDrop|Puzzle|Rainbow|Letter|Shadow|Fishing|Story)\]/)).map((quiz) => (
-                  <PremiumGameCard
-                    key={quiz.id}
-                    title={quiz.title}
-                    icon={quiz.image_url || '✨'}
-                    colorClass="kid-yellow"
-                    onClick={() => navigate(`/quiz/${quiz.id}`)}
-                  />
-                ))}
+                {isLoading ? (
+                  [...Array(5)].map((_, i) => <CardSkeleton key={i} />)
+                ) : (
+                  quizzes.filter(q => !q.title.match(/\[(Memory|DragDrop|Puzzle|Rainbow|Letter|Shadow|Fishing|Story)\]/)).map((quiz) => (
+                    <PremiumGameCard
+                      key={quiz.id}
+                      title={quiz.title}
+                      icon={quiz.image_url || '✨'}
+                      colorClass="kid-yellow"
+                      isPlayed={playedQuizIds.has(quiz.id)}
+                      onClick={() => navigate(`/quiz/${quiz.id}`)}
+                    />
+                  ))
+                )}
               </div>
             )}
 
             {/* Memory Games */}
             {activeTab === 'memory' && (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 sm:gap-8 px-2 pt-4">
-                {quizzes.filter(q => q.title.includes('[Memory]')).map((quiz) => (
-                  <PremiumGameCard
-                    key={quiz.id}
-                    title={quiz.title.replace('[Memory] ', '')}
-                    icon={quiz.image_url || '🃏'}
-                    colorClass="kid-secondary"
-                    onClick={() => navigate(`/memory/${quiz.id}`)}
-                  />
-                ))}
+                {isLoading ? (
+                  [...Array(5)].map((_, i) => <CardSkeleton key={i} />)
+                ) : (
+                  quizzes.filter(q => q.title.includes('[Memory]')).map((quiz) => (
+                    <PremiumGameCard
+                      key={quiz.id}
+                      title={quiz.title.replace('[Memory] ', '')}
+                      icon={quiz.image_url || '🃏'}
+                      colorClass="kid-secondary"
+                      isPlayed={playedQuizIds.has(quiz.id)}
+                      onClick={() => navigate(`/memory/${quiz.id}`)}
+                    />
+                  ))
+                )}
               </div>
             )}
 
             {/* Drag & Drop */}
             {activeTab === 'dragdrop' && (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 sm:gap-8 px-2 pt-4">
-                {quizzes.filter(q => q.title.includes('[DragDrop]')).map((quiz) => (
-                  <PremiumGameCard
-                    key={quiz.id}
-                    title={quiz.title.replace('[DragDrop] ', '')}
-                    icon={quiz.image_url || '🖐️'}
-                    colorClass="kid-primary"
-                    onClick={() => navigate(`/dragdrop/${quiz.id}`)}
-                  />
-                ))}
+                {isLoading ? (
+                  [...Array(5)].map((_, i) => <CardSkeleton key={i} />)
+                ) : (
+                  quizzes.filter(q => q.title.includes('[DragDrop]')).map((quiz) => (
+                    <PremiumGameCard
+                      key={quiz.id}
+                      title={quiz.title.replace('[DragDrop] ', '')}
+                      icon={quiz.image_url || '🖐️'}
+                      colorClass="kid-primary"
+                      isPlayed={playedQuizIds.has(quiz.id)}
+                      onClick={() => navigate(`/dragdrop/${quiz.id}`)}
+                    />
+                  ))
+                )}
               </div>
             )}
 
             {/* Puzzles */}
             {activeTab === 'puzzle' && (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 sm:gap-8 px-2 pt-4">
-                {quizzes.filter(q => q.title.includes('[Puzzle]')).map((quiz) => (
-                  <PremiumGameCard
-                    key={quiz.id}
-                    title={quiz.title.replace('[Puzzle] ', '')}
-                    icon={quiz.image_url}
-                    isImage={true}
-                    colorClass="kid-pink"
-                    onClick={() => navigate(`/puzzle/${quiz.id}`)}
-                  />
-                ))}
+                {isLoading ? (
+                  [...Array(5)].map((_, i) => <CardSkeleton key={i} />)
+                ) : (
+                  quizzes.filter(q => q.title.includes('[Puzzle]')).map((quiz) => (
+                    <PremiumGameCard
+                      key={quiz.id}
+                      title={quiz.title.replace('[Puzzle] ', '')}
+                      icon={quiz.image_url}
+                      isImage={true}
+                      colorClass="kid-pink"
+                      isPlayed={playedQuizIds.has(quiz.id)}
+                      onClick={() => navigate(`/puzzle/${quiz.id}`)}
+                    />
+                  ))
+                )}
               </div>
             )}
 
             {/* Mini-Games */}
             {activeTab === 'minigames' && (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 sm:gap-8 px-2 pt-4">
-                {quizzes.filter(q => q.title.match(/\[(Rainbow|Letter|Shadow|Fishing|Story)\]/)).map((quiz) => {
-                  let path = '';
-                  if (quiz.title.includes('[Rainbow]')) path = `/sorting/${quiz.id}`;
-                  if (quiz.title.includes('[Letter]')) path = `/letter/${quiz.id}`;
-                  if (quiz.title.includes('[Shadow]')) path = `/shadow/${quiz.id}`;
-                  if (quiz.title.includes('[Fishing]')) path = `/fishing/${quiz.id}`;
-                  if (quiz.title.includes('[Story]')) path = `/story/${quiz.id}`;
+                {isLoading ? (
+                  [...Array(5)].map((_, i) => <CardSkeleton key={i} />)
+                ) : (
+                  quizzes.filter(q => q.title.match(/\[(Rainbow|Letter|Shadow|Fishing|Story)\]/)).map((quiz) => {
+                    let path = '';
+                    if (quiz.title.includes('[Rainbow]')) path = `/sorting/${quiz.id}`;
+                    if (quiz.title.includes('[Letter]')) path = `/letter/${quiz.id}`;
+                    if (quiz.title.includes('[Shadow]')) path = `/shadow/${quiz.id}`;
+                    if (quiz.title.includes('[Fishing]')) path = `/fishing/${quiz.id}`;
+                    if (quiz.title.includes('[Story]')) path = `/story/${quiz.id}`;
 
-                  return (
-                    <PremiumGameCard
-                      key={quiz.id}
-                      title={quiz.title.replace(/\[.*?\]\s*/, '')}
-                      icon={quiz.image_url}
-                      colorClass="kid-green"
-                      onClick={() => navigate(path)}
-                    />
-                  );
-                })}
+                    return (
+                      <PremiumGameCard
+                        key={quiz.id}
+                        title={quiz.title.replace(/\[.*?\]\s*/, '')}
+                        icon={quiz.image_url}
+                        colorClass="kid-green"
+                        isPlayed={playedQuizIds.has(quiz.id)}
+                        onClick={() => navigate(path)}
+                      />
+                    );
+                  })
+                )}
               </div>
             )}
           </motion.div>

@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useKid } from '../contexts/KidContext';
+import { useQueryClient } from 'react-query';
 import ConfettiEffect from '../components/common/ConfettiEffect';
-import FunLoader from '../components/common/FunLoader';
+import { GameSkeleton } from '../components/common/Skeletons';
 
 const _envUrl = import.meta.env.VITE_API_BASE_URL;
 const API_BASE_URL = _envUrl ? (_envUrl.endsWith('/api/v1') ? _envUrl : _envUrl.replace(/\/$/, '') + '/api/v1') : 'https://kid-s-backend.onrender.com/api/v1';
@@ -74,6 +75,7 @@ const StoryBuilder = () => {
   const { quizId } = useParams();
   const navigate = useNavigate();
   const { selectedKid } = useKid();
+  const queryClient = useQueryClient();
 
   const [quiz, setQuiz] = useState(null);
   const [story, setStory] = useState(null);
@@ -156,11 +158,12 @@ const StoryBuilder = () => {
           starsEarned: finalScore,
           coinsEarned: Math.floor(finalScore / 2)
         })
-      });
+      }); 
+      queryClient.invalidateQueries('dashboard');
     } catch (err) {}
   };
 
-  if (!quiz || !story) return <FunLoader message="Loading Story Builder..." />;
+  if (!quiz || !story) return <GameSkeleton />;
 
   return (
     <div className="absolute inset-0 z-[100] bg-kid-bg flex flex-col items-center justify-center overflow-hidden">
