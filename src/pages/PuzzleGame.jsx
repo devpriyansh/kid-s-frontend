@@ -56,7 +56,22 @@ const PuzzleGame = () => {
   const [moves, setMoves] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
 
+  const isGuest = !selectedKid || quizId === 'guest';
+
   useEffect(() => {
+    if (isGuest) {
+      const guestQuiz = {
+        id: 'guest',
+        title: '[Puzzle] Cute Animal blocks',
+        description: 'Drag the pieces into their correct places!',
+        image_url: 'https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=600',
+        class_level: 'nursery'
+      };
+      setQuiz(guestQuiz);
+      initializeGame(guestQuiz);
+      return;
+    }
+
     if (!selectedKid) {
       navigate('/child-profiles');
       return;
@@ -82,7 +97,7 @@ const PuzzleGame = () => {
     };
 
     fetchQuiz();
-  }, [quizId, selectedKid, navigate]);
+  }, [quizId, selectedKid, navigate, isGuest]);
 
   const initializeGame = (q) => {
     let size = 2; // nursery
@@ -142,6 +157,11 @@ const PuzzleGame = () => {
     const penalty = Math.max(0, moves - (gridSize * gridSize));
     const finalScore = Math.max(5, baseScore - penalty);
     
+    if (isGuest) {
+      // In guest mode, do not submit to backend.
+      return;
+    }
+
     try {
       const token = localStorage.getItem('token');
       await fetch(`${API_BASE_URL}/quiz/submit`, {
@@ -185,7 +205,7 @@ const PuzzleGame = () => {
       </div>
 
       <button 
-        onClick={() => navigate('/class-dashboard')}
+        onClick={() => navigate(selectedKid ? '/class-dashboard' : '/play')}
         className="absolute top-4 left-4 z-[60] bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] font-bold text-slate-600 flex items-center gap-2 border-2 border-slate-200 hover:bg-white transition-colors"
       >
         ⬅️ <span className="hidden sm:inline">Back</span>
@@ -307,12 +327,39 @@ const PuzzleGame = () => {
               <div className="text-[4rem] sm:text-[6rem] mb-2 sm:mb-4 drop-shadow-md relative z-10">🖼️</div>
               <h2 className="text-3xl sm:text-5xl font-baloo font-black gradient-text mb-2 sm:mb-4 relative z-10">Masterpiece!</h2>
               <p className="text-lg sm:text-2xl font-bold text-slate-500 mb-6 sm:mb-8 font-nunito relative z-10">You solved the puzzle in <span className="text-kid-primary-dark font-baloo text-xl sm:text-3xl">{moves}</span> moves!</p>
-              <button 
-                onClick={() => navigate('/class-dashboard')}
-                className="btn-chunky w-full text-xl sm:text-2xl py-4 sm:py-6 bg-gradient-to-b from-kid-green to-kid-green-dark shadow-[0_8px_16px_rgba(110,231,183,0.3),inset_0_4px_8px_rgba(255,255,255,0.4)] relative z-10"
-              >
-                Back to Dashboard
-              </button>
+              <div className="flex flex-col gap-3 w-full relative z-10">
+                {isGuest ? (
+                  <>
+                    <button 
+                      onClick={() => navigate('/signup')}
+                      className="btn-primary w-full text-xl py-3"
+                    >
+                      Sign Up For Free
+                    </button>
+                    <button 
+                      onClick={() => navigate('/play')}
+                      className="btn-secondary w-full text-xl py-3"
+                    >
+                      Try Another Game
+                    </button>
+                    <button 
+                      onClick={() => {
+                        initializeGame(quiz);
+                      }}
+                      className="text-slate-500 font-bold hover:text-slate-700 transition-colors py-1"
+                    >
+                      Play Again
+                    </button>
+                  </>
+                ) : (
+                  <button 
+                    onClick={() => navigate('/class-dashboard')}
+                    className="btn-chunky w-full text-xl sm:text-2xl py-4 sm:py-6 bg-gradient-to-b from-kid-green to-kid-green-dark shadow-[0_8px_16px_rgba(110,231,183,0.3),inset_0_4px_8px_rgba(255,255,255,0.4)]"
+                  >
+                    Back to Dashboard
+                  </button>
+                )}
+              </div>
             </div>
           </motion.div>
         )}

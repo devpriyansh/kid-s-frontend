@@ -12,56 +12,88 @@ import { useProgress } from '../hooks/useProgress';
 import { useDashboard } from '../hooks/useKids';
 import { BookOpen, Palette, Gamepad2, Brain, HandMetal, Puzzle, Sparkles, Bot, PlayCircle, CheckCircle2 } from 'lucide-react';
 
-const getGradientClasses = (colorName) => {
+const getActiveTabGradient = (colorName) => {
   switch (colorName) {
-    case 'kid-primary': return 'from-kid-primary to-kid-primary-dark';
-    case 'kid-secondary': return 'from-kid-secondary to-kid-secondary-dark';
-    case 'kid-yellow': return 'from-kid-yellow to-kid-yellow-dark';
-    case 'kid-yellow-dark': return 'from-kid-yellow to-kid-yellow-dark';
-    case 'kid-purple': return 'from-kid-purple to-kid-purple-dark';
-    case 'kid-green': return 'from-kid-green to-kid-green-dark';
-    case 'kid-pink': return 'from-kid-secondary to-kid-secondary-dark';
-    default: return 'from-kid-primary to-kid-primary-dark';
+    case 'kid-primary': return 'from-blue-500 to-indigo-600';
+    case 'kid-secondary': return 'from-teal-400 to-emerald-600';
+    case 'kid-yellow': return 'from-amber-400 to-orange-500';
+    case 'kid-yellow-dark': return 'from-orange-500 to-red-600';
+    case 'kid-purple': return 'from-purple-500 to-pink-600';
+    case 'kid-green': return 'from-emerald-500 to-teal-600';
+    case 'kid-pink': return 'from-pink-500 to-rose-600';
+    default: return 'from-blue-500 to-indigo-600';
+  }
+};
+
+const getPastelGradient = (colorName) => {
+  switch (colorName) {
+    case 'kid-primary': return 'from-blue-50 via-sky-100 to-indigo-50';
+    case 'kid-secondary': return 'from-cyan-50 via-teal-100 to-emerald-50';
+    case 'kid-yellow': return 'from-amber-50 via-yellow-100 to-orange-50';
+    case 'kid-yellow-dark': return 'from-orange-50 via-amber-100 to-red-50';
+    case 'kid-purple': return 'from-fuchsia-50 via-purple-100 to-pink-50';
+    case 'kid-green': return 'from-emerald-50 via-green-100 to-teal-50';
+    case 'kid-pink': return 'from-pink-50 via-rose-100 to-red-50';
+    default: return 'from-blue-50 via-indigo-100 to-purple-50';
+  }
+};
+
+const getTextColor = (colorName) => {
+  switch (colorName) {
+    case 'kid-primary': return 'text-indigo-600';
+    case 'kid-secondary': return 'text-teal-600';
+    case 'kid-yellow': return 'text-orange-600';
+    case 'kid-yellow-dark': return 'text-red-600';
+    case 'kid-purple': return 'text-purple-600';
+    case 'kid-green': return 'text-emerald-600';
+    case 'kid-pink': return 'text-rose-600';
+    default: return 'text-indigo-600';
   }
 };
 
 const PremiumGameCard = ({ title, icon, colorClass, onClick, isImage = false, isPlayed = false }) => {
+  const textColor = getTextColor(colorClass);
   return (
     <motion.div
-      whileHover={{ scale: 1.05, y: -8 }}
-      whileTap={{ scale: 0.95 }}
       onClick={onClick}
-      className="relative glass-card overflow-hidden cursor-pointer group flex flex-col aspect-[4/5] shadow-[0_12px_40px_rgba(0,0,0,0.12)] border-4 border-white"
+      className={`bg-white/80 backdrop-blur-xl border border-white/80 shadow-lg rounded-[2rem] bg-gradient-to-br ${getPastelGradient(colorClass)} aspect-[4/5] group flex flex-col items-center overflow-hidden relative hover:-translate-y-2 hover:shadow-xl transition-all cursor-pointer`}
     >
-      <div className={`absolute inset-0 bg-gradient-to-br from-white/60 to-${colorClass}/20 pointer-events-none`} />
+      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay pointer-events-none"></div>
       
+      {/* Subtle Glow */}
+      <div className="absolute top-[-20%] left-[-20%] w-32 h-32 rounded-full bg-white/60 blur-xl group-hover:scale-150 transition-transform duration-700 pointer-events-none"></div>
+
       {isPlayed && (
         <motion.div 
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          className="absolute top-3 right-3 z-30 bg-kid-green text-white p-1 rounded-full shadow-md"
+          className="absolute top-3 right-3 z-30 bg-white/90 text-kid-green p-1.5 rounded-full shadow-md border border-slate-100"
         >
           <CheckCircle2 size={24} strokeWidth={3} />
         </motion.div>
       )}
 
-      <div className="flex-1 flex items-center justify-center relative z-10 p-6">
+      <div className="flex-1 flex items-center justify-center relative z-10 p-2 sm:p-4 w-full">
         {isImage ? (
-          <img src={icon} alt={title} className="w-full h-full object-contain drop-shadow-2xl group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500" />
+          <img src={icon} alt={title} className="w-full h-full object-contain drop-shadow-xl group-hover:scale-110 group-hover:rotate-6 transition-transform duration-500" />
         ) : (
-          <div className="text-[6rem] sm:text-[8rem] drop-shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-transform duration-500 leading-none">
+          <motion.div 
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            className={`text-[5rem] sm:text-[7rem] drop-shadow-xl group-hover:scale-110 group-hover:rotate-6 transition-transform duration-500 leading-none ${textColor}`}
+          >
             {icon}
-          </div>
+          </motion.div>
         )}
       </div>
 
-      <div className="bg-white/95 backdrop-blur-xl p-4 sm:p-5 text-center border-t-4 border-white relative z-10 shadow-[0_-8px_20px_rgba(0,0,0,0.08)]">
-        <h3 className="text-xl sm:text-2xl font-black font-baloo text-kid-text truncate drop-shadow-sm">{title}</h3>
+      <div className="text-center relative z-10 mt-auto pt-2 pb-4 px-2">
+        <h3 className={`text-xl sm:text-2xl font-black font-baloo drop-shadow-sm truncate ${textColor}`}>{title}</h3>
       </div>
 
-      <div className="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 backdrop-blur-[2px] transition-all duration-300 flex items-center justify-center z-20">
-        <div className={`btn-chunky bg-gradient-to-b ${getGradientClasses(colorClass)} shadow-[0_10px_25px_rgba(0,0,0,0.4),inset_0_4px_8px_rgba(255,255,255,0.4)] scale-75 group-hover:scale-100 transition-transform duration-300 pointer-events-none text-2xl px-6 py-3 border-2 border-white/60`}>
-          <PlayCircle size={36} strokeWidth={3} /> Play!
+      <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 backdrop-blur-[2px] transition-all duration-300 flex items-center justify-center z-20">
+        <div className={`btn-chunky bg-white text-kid-primary shadow-xl scale-75 group-hover:scale-100 transition-transform duration-300 pointer-events-none text-2xl px-6 py-3 border-2 border-slate-100`}>
+          <PlayCircle size={36} strokeWidth={3} className="inline-block mr-2" /> Play!
         </div>
       </div>
     </motion.div>
@@ -198,7 +230,7 @@ const ClassDashboard = () => {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-baloo font-black text-lg transition-all border whitespace-nowrap overflow-hidden relative focus:outline-none focus-visible:ring-4 focus-visible:ring-white/50 ${isActive
-                    ? `bg-gradient-to-b ${getGradientClasses(tab.color)} text-white border-white/40 shadow-[0_8px_16px_rgba(0,0,0,0.1),inset_0_4px_8px_rgba(255,255,255,0.4)]`
+                    ? `bg-gradient-to-b ${getActiveTabGradient(tab.color)} text-white border-white/40 shadow-[0_8px_16px_rgba(0,0,0,0.2),inset_0_4px_8px_rgba(255,255,255,0.3)]`
                     : 'bg-white/60 backdrop-blur-sm text-slate-500 hover:text-slate-700 hover:bg-white/80 border-white/80 shadow-[0_4px_8px_rgba(0,0,0,0.05)]'
                   }`}
               >

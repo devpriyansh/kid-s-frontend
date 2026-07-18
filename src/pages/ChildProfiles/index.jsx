@@ -7,6 +7,30 @@ import Avatar from '../../components/common/Avatar';
 import { ProfileCardSkeleton } from '../../components/common/Skeletons';
 import { Users, Plus, Star, Smile } from 'lucide-react';
 
+const getTailwindGradient = (index) => {
+  const gradients = [
+    'from-blue-50 via-sky-100 to-indigo-50',
+    'from-pink-50 via-rose-100 to-red-50',
+    'from-amber-50 via-yellow-100 to-orange-50',
+    'from-emerald-50 via-green-100 to-teal-50',
+    'from-fuchsia-50 via-purple-100 to-pink-50',
+    'from-cyan-50 via-teal-100 to-emerald-50'
+  ];
+  return gradients[index % gradients.length];
+};
+
+const getTextColor = (index) => {
+  const colors = [
+    'text-indigo-600',
+    'text-rose-600',
+    'text-orange-600',
+    'text-teal-600',
+    'text-purple-600',
+    'text-emerald-600'
+  ];
+  return colors[index % colors.length];
+};
+
 const ChildProfiles = () => {
   const { data: kids, isLoading, refetch } = useKids();
   const { setSelectedKid } = useKid();
@@ -20,10 +44,10 @@ const ChildProfiles = () => {
   const avatars = ['🦊', '🐼', '🐨', '🦁', '🐸', '🐵', '🐶', '🐱', '🦄', '🐧'];
 
   // After selecting a kid, navigate to class selection
-const handleSelect = (kid) => {
-  setSelectedKid(kid);
-  navigate('/class-selection');
-};
+  const handleSelect = (kid) => {
+    setSelectedKid(kid);
+    navigate('/class-selection');
+  };
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -60,47 +84,54 @@ const handleSelect = (kid) => {
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="h-full flex flex-col hide-scrollbar">
-      <div className="flex-none mb-8 text-center bg-white p-6 rounded-3xl border-4 border-slate-200 shadow-[0_4px_0_0_#E2E8F0] inline-block mx-auto">
-        <h1 className="text-4xl md:text-5xl font-fredoka font-black text-kid-primary-dark flex items-center gap-4 justify-center">
-          <Users size={40} className="text-kid-primary" strokeWidth={3} /> Choose Your Adventurer!
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="h-full flex flex-col hide-scrollbar relative z-10">
+      <div className="flex-none mb-8 mt-4 text-center">
+        <h1 className="text-4xl md:text-6xl font-baloo font-black text-kid-primary-dark flex items-center gap-4 justify-center drop-shadow-md">
+          <Users size={56} className="text-kid-primary" strokeWidth={3} /> Choose Your Adventurer!
         </h1>
       </div>
 
       <div className="flex-1 flex items-center justify-center overflow-hidden">
-        <div className="flex overflow-x-auto hide-scrollbar gap-6 pb-12 pt-4 px-4 snap-x snap-mandatory w-full max-w-6xl mx-auto">
+        <div className="flex overflow-x-auto hide-scrollbar gap-8 pb-12 pt-4 px-4 snap-x snap-mandatory w-full max-w-6xl mx-auto">
           {isLoading ? (
             [...Array(3)].map((_, i) => <ProfileCardSkeleton key={i} />)
           ) : (
-            kids?.map((kid) => (
-              <motion.div
-                key={kid.id}
-                whileHover={{ scale: 1.05, y: -10 }}
-                whileTap={{ scale: 0.95 }}
-                className="snap-center shrink-0 w-64 glass-card p-8 text-center cursor-pointer border-4 border-slate-200 hover:border-kid-primary transition-all duration-300 relative group bg-white shadow-[0_8px_0_0_#E2E8F0] hover:shadow-[0_12px_0_0_#0284C7]"
-                onClick={() => handleSelect(kid)}
-              >
-                <div className="absolute inset-0 bg-kid-primary/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-[1.25rem]"></div>
-                <div className="relative z-10">
-                  <Avatar emoji={kid.avatar} size="large" />
-                  <h3 className="text-3xl font-fredoka font-black text-kid-text mt-6 mb-2">{kid.name}</h3>
-                  <span className="font-bold text-kid-yellow-dark bg-kid-yellow/20 px-4 py-2 rounded-xl text-lg flex items-center justify-center gap-2">
-                    <Star size={20} className="fill-kid-yellow-dark" /> {kid.stars} stars
-                  </span>
-                </div>
-              </motion.div>
-            ))
+            kids?.map((kid, index) => {
+              const textColor = getTextColor(index);
+              return (
+                <motion.div
+                  key={kid.id}
+                  className={`snap-center shrink-0 w-72 bg-white/80 backdrop-blur-xl border border-white/80 shadow-lg rounded-[2rem] bg-gradient-to-br ${getTailwindGradient(index)} text-center aspect-[4/5] group flex flex-col items-center justify-center cursor-pointer hover:-translate-y-2 hover:shadow-xl transition-all relative overflow-hidden`}
+                  onClick={() => handleSelect(kid)}
+                >
+                  <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay pointer-events-none"></div>
+                  <div className="absolute top-[-20%] right-[-20%] w-32 h-32 rounded-full bg-white/60 blur-xl group-hover:scale-150 transition-transform duration-700 pointer-events-none"></div>
+
+                  <div className="relative z-10 w-full flex flex-col items-center flex-1 justify-center">
+                    <motion.div 
+                      animate={{ y: [0, -10, 0] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: index * 0.2 }}
+                    >
+                      <Avatar emoji={kid.avatar} size="xl" className="shadow-xl drop-shadow-xl border-4 border-white" />
+                    </motion.div>
+                    <h3 className={`text-4xl font-baloo font-black mt-8 mb-4 drop-shadow-sm ${textColor}`}>{kid.name}</h3>
+                    <span className="font-bold text-kid-yellow-dark bg-white/90 backdrop-blur-sm px-4 py-2 rounded-xl text-lg flex items-center justify-center gap-2 shadow-sm border border-white">
+                      <Star size={24} className="fill-kid-yellow-dark" /> {kid.stars} stars
+                    </span>
+                  </div>
+                </motion.div>
+              );
+            })
           )}
           
           <motion.div
-            whileHover={{ scale: 1.05, y: -10 }}
-            className="snap-center shrink-0 w-64 glass-card p-8 text-center cursor-pointer border-4 border-dashed border-slate-300 hover:border-kid-secondary hover:bg-kid-secondary/5 flex flex-col items-center justify-center gap-4 transition-all duration-300 shadow-none bg-transparent"
+            className="snap-center shrink-0 w-72 glass-card-premium bg-white/40 backdrop-blur-xl border-dashed text-center flex flex-col items-center justify-center gap-4 aspect-[4/5]"
             onClick={() => setShowCreate(true)}
           >
-            <div className="bg-white p-4 rounded-full border-4 border-slate-200 shadow-sm text-kid-secondary">
-              <Plus size={48} strokeWidth={4} />
+            <div className="bg-white/90 p-6 rounded-full shadow-lg text-kid-secondary group-hover:bg-kid-secondary group-hover:text-white transition-colors duration-300">
+              <Plus size={64} strokeWidth={4} />
             </div>
-            <p className="text-2xl font-black font-fredoka text-slate-500">Add New</p>
+            <p className="text-3xl font-black font-baloo text-slate-500 drop-shadow-sm">Add New</p>
           </motion.div>
         </div>
       </div>

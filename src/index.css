@@ -32,8 +32,9 @@
   }
   
   .gradient-text-premium {
-    @apply text-transparent bg-clip-text bg-gradient-to-br from-kid-primary-dark to-kid-purple-dark font-baloo font-black drop-shadow-sm;
-    -webkit-text-stroke: 1px rgba(255,255,255,0.8);
+    @apply text-transparent bg-clip-text bg-gradient-to-br from-kid-primary via-kid-purple to-kid-secondary font-baloo font-black;
+    -webkit-text-stroke: 1.5px white;
+    filter: drop-shadow(0 3px 0 rgba(139, 92, 246, 0.3)) drop-shadow(0 6px 8px rgba(0, 0, 0, 0.15));
   }
 }
 
@@ -43,6 +44,10 @@
     @apply glass-panel transition-all duration-300 relative overflow-hidden hover:shadow-[0_12px_40px_rgba(0,0,0,0.1),inset_0_2px_4px_rgba(255,255,255,0.9)] hover:-translate-y-1;
   }
   
+  .glass-card-premium {
+    @apply relative rounded-[2rem] overflow-hidden cursor-pointer flex flex-col p-6 shadow-lg hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] transition-all duration-300 border-4 border-white/60 hover:border-white;
+  }
+  
   /* Bright playful text */
   .gradient-text {
     @apply gradient-text-premium;
@@ -50,7 +55,7 @@
   
   /* Premium Glossy Primary Button */
   .btn-primary {
-    @apply relative px-8 py-4 bg-gradient-to-b from-kid-primary to-kid-primary-dark text-white font-baloo font-black text-2xl rounded-[1.5rem] border border-white/40 shadow-[0_8px_16px_rgba(59,130,246,0.3),inset_0_4px_8px_rgba(255,255,255,0.4)] active:shadow-[0_2px_4px_rgba(59,130,246,0.3),inset_0_1px_2px_rgba(255,255,255,0.4)] active:translate-y-2 transition-all duration-200 flex items-center justify-center gap-3 select-none overflow-hidden hover:scale-[1.02];
+    @apply relative px-8 py-4 bg-gradient-to-b from-kid-primary to-kid-primary-dark text-white font-baloo font-black text-2xl rounded-[1.5rem] border border-white/40 shadow-[0_8px_16px_rgba(59,130,246,0.3),inset_0_4px_8px_rgba(255,255,255,0.4)] active:shadow-[0_2px_4px_rgba(59,130,246,0.3),inset_0_1px_2px_rgba(255,255,255,0.4)] active:translate-y-2 transition-all duration-300 flex items-center justify-center gap-3 select-none overflow-hidden hover:scale-105 hover:-translate-y-1 hover:shadow-[0_15px_30px_rgba(59,130,246,0.4)];
   }
   
   .btn-primary::after {
@@ -61,7 +66,7 @@
   
   /* Premium Glossy Secondary Button */
   .btn-secondary {
-    @apply relative px-8 py-4 bg-white/90 backdrop-blur-sm text-kid-primary-dark font-baloo font-black text-xl rounded-[1.5rem] border border-kid-primary/20 shadow-[0_8px_16px_rgba(0,0,0,0.05),inset_0_4px_8px_rgba(255,255,255,0.8)] hover:bg-white active:shadow-[0_2px_4px_rgba(0,0,0,0.05)] active:translate-y-2 transition-all duration-200 flex items-center justify-center gap-3 select-none hover:scale-[1.02];
+    @apply relative px-8 py-4 bg-white/90 backdrop-blur-sm text-kid-primary-dark font-baloo font-black text-xl rounded-[1.5rem] border-2 border-kid-primary/20 shadow-[0_8px_16px_rgba(0,0,0,0.05),inset_0_4px_8px_rgba(255,255,255,0.8)] hover:bg-white active:shadow-[0_2px_4px_rgba(0,0,0,0.05)] active:translate-y-2 transition-all duration-300 flex items-center justify-center gap-3 select-none hover:scale-105 hover:-translate-y-1 hover:shadow-[0_12px_24px_rgba(0,0,0,0.1)];
   }
   
   /* Generic Premium Button Base (for custom colors) */

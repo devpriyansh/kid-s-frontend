@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { coloringPages } from '../data/coloringPages';
 import ConfettiEffect from '../components/common/ConfettiEffect';
 import { Undo2, Trash2, CheckCircle2 } from 'lucide-react';
@@ -28,6 +28,7 @@ const ColoringGame = () => {
   const [currentColor, setCurrentColor] = useState(COLORS[0]);
   const [history, setHistory] = useState([]);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [isFinished, setIsFinished] = useState(false);
 
   const svgContainerRef = useRef(null);
 
@@ -78,7 +79,7 @@ const ColoringGame = () => {
 
   const handleFinish = async () => {
     setShowConfetti(true);
-    setTimeout(() => setShowConfetti(false), 3000);
+    setIsFinished(true);
 
     if (!selectedKid) return;
 
@@ -218,6 +219,60 @@ const ColoringGame = () => {
 
           </div>
         </div>
+
+        <AnimatePresence>
+          {isFinished && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+            >
+              <div className="glass-panel p-6 sm:p-10 max-w-md w-full text-center border-white/80 shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-kid-purple/30 rounded-full blur-3xl pointer-events-none"></div>
+                <div className="text-[4rem] sm:text-[6rem] mb-2 sm:mb-4 drop-shadow-md relative z-10">🎨</div>
+                <h2 className="text-3xl sm:text-5xl font-baloo font-black gradient-text mb-2 sm:mb-4 relative z-10">Beautiful!</h2>
+                <p className="text-lg sm:text-2xl font-bold text-slate-500 mb-6 sm:mb-8 font-nunito relative z-10">
+                  {selectedKid ? 'Your coloring progress is saved!' : 'Create an account to save your stars and drawings!'}
+                </p>
+                
+                <div className="flex flex-col gap-3 w-full relative z-10">
+                  {!selectedKid ? (
+                    <>
+                      <button 
+                        onClick={() => navigate('/signup')}
+                        className="btn-primary w-full text-xl py-3"
+                      >
+                        Sign Up For Free
+                      </button>
+                      <button 
+                        onClick={() => navigate('/coloring')}
+                        className="btn-secondary w-full text-xl py-3"
+                      >
+                        Try Another Drawing
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setIsFinished(false);
+                          handleClear();
+                        }}
+                        className="text-slate-500 font-bold hover:text-slate-700 transition-colors py-1"
+                      >
+                        Color Again
+                      </button>
+                    </>
+                  ) : (
+                    <button 
+                      onClick={() => navigate('/coloring')}
+                      className="btn-chunky w-full text-xl sm:text-2xl py-4 bg-gradient-to-b from-kid-green to-kid-green-dark shadow-[0_8px_16px_rgba(110,231,183,0.3),inset_0_4px_8px_rgba(255,255,255,0.4)] animate-bounce-slow"
+                    >
+                      Back to Coloring Books
+                    </button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </div>
   );

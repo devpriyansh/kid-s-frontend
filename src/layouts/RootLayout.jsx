@@ -4,7 +4,7 @@ import Navbar from '../components/common/Navbar';
 
 const RootLayout = () => {
   return (
-    <div className="h-full w-full flex flex-col bg-kid-bg overflow-hidden relative">
+    <div className="h-full w-full flex flex-col overflow-hidden relative">
       <Navbar />
       <main className="flex-1 w-full relative z-0 overflow-hidden p-4 md:p-6 lg:p-8">
         <Outlet />
