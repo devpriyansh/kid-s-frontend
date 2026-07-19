@@ -15,6 +15,7 @@ const ColoringSelection = () => {
   const navigate = useNavigate();
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('easy');
 
   const playedColoringTitles = React.useMemo(() => {
     if (!dashboardData?.gameProgress) return new Set();
@@ -24,9 +25,9 @@ const ColoringSelection = () => {
     return new Set(played);
   }, [dashboardData, selectedKid]);
 
-  const handlePageClick = (e, index) => {
+  const handlePageClick = (e, pageId) => {
     const isGuest = !selectedKid;
-    const isLocked = isGuest && index >= 2; // only first two are free for guests
+    const isLocked = isGuest && pageId > 2; // only first two are free for guests
 
     if (isLocked) {
       e.preventDefault();
@@ -52,27 +53,85 @@ const ColoringSelection = () => {
         <span>Back</span>
       </button>
 
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full w-full flex flex-col max-w-7xl mx-auto z-10 pt-10 sm:pt-0">
-        <div className="flex-none text-center mb-10 relative z-10 flex flex-col items-center">
-          <div className="glass-panel px-10 py-4 inline-block mb-4 border-white/60">
-            <h1 className="text-5xl md:text-6xl font-baloo font-black gradient-text drop-shadow-sm">🖍️ Coloring Games!</h1>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full w-full max-w-7xl mx-auto z-10 pt-16 sm:pt-4 overflow-y-auto hide-scrollbar">
+        <div className="text-center mb-6 relative z-10 flex flex-col items-center">
+          <div className="glass-panel px-8 py-3 inline-block mb-3 border-white/60">
+            <h1 className="text-4xl md:text-5xl font-baloo font-black gradient-text drop-shadow-sm">🖍️ Coloring Games!</h1>
           </div>
-          <p className="text-2xl text-slate-500 font-bold glass-panel inline-block px-8 py-3 border-white/60 font-nunito drop-shadow-sm">
+          <p className="text-lg md:text-xl text-slate-500 font-bold glass-panel inline-block px-6 py-2 border-white/60 font-nunito drop-shadow-sm">
             Choose a picture to color!
           </p>
         </div>
+          
+        {/* Tabs */}
+        <div className="sticky top-4 z-40 flex justify-center mb-8 px-4">
+          <div className="flex gap-2 sm:gap-4 p-1.5 sm:p-2 glass-panel bg-white/70 backdrop-blur-lg border-white/80 rounded-full shadow-[0_8px_16px_rgba(0,0,0,0.05)]">
+            <button
+              onClick={() => setActiveTab('easy')}
+              className={`relative px-4 sm:px-8 py-2 sm:py-3 rounded-full text-sm sm:text-lg font-bold font-baloo transition-colors z-10 ${
+                activeTab === 'easy' ? 'text-white' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              {activeTab === 'easy' && (
+                <motion.div
+                  layoutId="active-tab"
+                  className="absolute inset-0 bg-kid-primary rounded-full shadow-md z-[-1]"
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                />
+              )}
+              Easy
+            </button>
+            <button
+              onClick={() => setActiveTab('portrait')}
+              className={`relative px-4 sm:px-8 py-2 sm:py-3 rounded-full text-sm sm:text-lg font-bold font-baloo transition-colors z-10 ${
+                activeTab === 'portrait' ? 'text-white' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              {activeTab === 'portrait' && (
+                <motion.div
+                  layoutId="active-tab"
+                  className="absolute inset-0 bg-kid-purple rounded-full shadow-md z-[-1]"
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                />
+              )}
+              Portrait
+            </button>
+            <button
+              onClick={() => setActiveTab('learning')}
+              className={`relative px-4 sm:px-8 py-2 sm:py-3 rounded-full text-sm sm:text-lg font-bold font-baloo transition-colors z-10 ${
+                activeTab === 'learning' ? 'text-white' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              {activeTab === 'learning' && (
+                <motion.div
+                  layoutId="active-tab"
+                  className="absolute inset-0 bg-kid-green rounded-full shadow-md z-[-1]"
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                />
+              )}
+              Learning
+            </button>
+          </div>
+        </div>
 
-        <div className="flex-1 min-h-0 overflow-y-auto hide-scrollbar px-4 pb-8">
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-8">
-            {coloringPages.map((page, index) => {
+        <div className="px-4 pb-12">
+          <motion.div 
+            key={activeTab}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-8"
+          >
+            {coloringPages.filter(page => page.category === activeTab).map((page) => {
               const isGuest = !selectedKid;
-              const isLocked = isGuest && index >= 2;
+              const isLocked = isGuest && page.id > 2;
               
               return (
                 <Link 
                   to={`/coloring/${page.id}`} 
                   key={page.id}
-                  onClick={(e) => handlePageClick(e, index)}
+                  onClick={(e) => handlePageClick(e, page.id)}
                 >
                   <motion.div 
                     whileHover={{ scale: 1.05, y: -5 }} 
@@ -102,7 +161,7 @@ const ColoringSelection = () => {
                 </Link>
               );
             })}
-          </div>
+          </motion.div>
         </div>
       </motion.div>
     </div>

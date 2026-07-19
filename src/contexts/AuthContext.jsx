@@ -64,6 +64,33 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const googleLogin = async (accessToken) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/google-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessToken }),
+      });
+      const resData = await response.json();
+      
+      if (response.ok && resData.data && resData.data.status === 200) {
+        const loggedInUser = resData.data.result.user;
+        const jwtToken = resData.data.result.loginToken;
+        setUser(loggedInUser);
+        setToken(jwtToken);
+        localStorage.setItem('user', JSON.stringify(loggedInUser));
+        localStorage.setItem('token', jwtToken);
+        return { success: true };
+      } else {
+        const errorMessage = resData.errors && resData.errors.length > 0 ? resData.errors[0].description || resData.errors[0].message : 'Google Login failed';
+        return { success: false, message: errorMessage };
+      }
+    } catch (error) {
+      console.error('Google Login error:', error);
+      return { success: false, message: 'An error occurred during Google sign-in.' };
+    }
+  };
+
   const logout = () => {
     setUser(null);
     setToken(null);
@@ -72,7 +99,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, login, register, logout, googleLogin }}>
       {children}
     </AuthContext.Provider>
   );

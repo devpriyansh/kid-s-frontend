@@ -11,11 +11,11 @@ const _envUrl = import.meta.env.VITE_API_BASE_URL;
 const API_BASE_URL = _envUrl ? (_envUrl.endsWith('/api/v1') ? _envUrl : _envUrl.replace(/\/$/, '') + '/api/v1') : 'https://kid-s-backend.onrender.com/api/v1';
 
 const COLORS = [
-  '#ef4444', '#f97316', '#A52A2A', '#f59e0b', '#fcd34d',
-  '#84cc16', '#22c55e', '#10b981', '#14b8a6',
-  '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1',
-  '#8b5cf6', '#a855f7', '#d946ef', '#ec4899',
-  '#f43f5e', '#ffffff', '#94a3b8', '#000000'
+  '#ef4444', '#f87171', '#fb7185', '#f472b6', '#ec4899', '#d946ef', '#a855f7', '#8b5cf6', '#6366f1',
+  '#3b82f6', '#60a5fa', '#38bdf8', '#bae6fd', '#0ea5e9', '#0284c7', '#06b6d4', '#14b8a6', '#10b981', '#22c55e',
+  '#4ade80', '#16a34a', '#84cc16', '#fef08a', '#fde047', '#fcd34d', '#eab308', '#f59e0b', '#fb923c', '#f97316',
+  '#d97706', '#a16207', '#78350f', '#fef3c7', '#e2e8f0', '#cbd5e1', '#94a3b8', '#64748b', '#475569', '#334155', '#1e293b', '#0f172a', '#000000',
+  '#ffffff', '#A52A2A', '#8B4513', '#D2691E', '#FFD700', '#FF69B4', '#8A2BE2'
 ];
 
 const ColoringGame = () => {
@@ -29,6 +29,7 @@ const ColoringGame = () => {
   const [history, setHistory] = useState([]);
   const [showConfetti, setShowConfetti] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
+  const [validationError, setValidationError] = useState('');
 
   const svgContainerRef = useRef(null);
 
@@ -42,9 +43,10 @@ const ColoringGame = () => {
 
   const handleSvgClick = (e) => {
     const target = e.target;
-    const validTags = ['path', 'circle', 'rect', 'polygon', 'ellipse'];
+    const validTags = ['path', 'circle', 'rect', 'polygon', 'ellipse', 'text'];
 
     if (validTags.includes(target.tagName.toLowerCase())) {
+      target.classList.remove('wrong-color-flash');
       const oldColor = target.getAttribute('fill') || 'white';
 
       if (oldColor !== currentColor) {
@@ -70,7 +72,7 @@ const ColoringGame = () => {
   const handleClear = () => {
     if (!svgContainerRef.current) return;
 
-    const elements = svgContainerRef.current.querySelectorAll('path, circle, rect, polygon, ellipse');
+    const elements = svgContainerRef.current.querySelectorAll('path, circle, rect, polygon, ellipse, text');
     elements.forEach(el => {
       el.setAttribute('fill', 'white');
     });
@@ -78,6 +80,47 @@ const ColoringGame = () => {
   };
 
   const handleFinish = async () => {
+    setValidationError('');
+
+    if (svgContainerRef.current && page?.referenceSvgContent) {
+      const userElements = Array.from(svgContainerRef.current.querySelectorAll('path, circle, rect, polygon, ellipse, text'));
+      
+      const parser = new DOMParser();
+      const refDoc = parser.parseFromString(page.referenceSvgContent, 'image/svg+xml');
+      const refElements = Array.from(refDoc.querySelectorAll('path, circle, rect, polygon, ellipse, text'));
+
+      let isPerfect = true;
+      let wrongElements = [];
+      for (let i = 0; i < userElements.length; i++) {
+        const userFill = userElements[i].getAttribute('fill') || 'white';
+        const refFill = refElements[i]?.getAttribute('fill') || 'white';
+        
+        const normalizeColor = (c) => {
+          if (!c || c === 'none' || c === 'white' || c === '#ffffff' || c === '#fff') return 'white';
+          if (c === '#000') return '#000000';
+          return c.toLowerCase();
+        };
+
+        if (normalizeColor(userFill) !== normalizeColor(refFill)) {
+          isPerfect = false;
+          wrongElements.push(userElements[i]);
+        }
+      }
+
+      if (!isPerfect) {
+        setValidationError("Oops! Some colors don't match. Look for the flashing areas!");
+        
+        wrongElements.forEach(el => {
+          el.classList.add('wrong-color-flash');
+          setTimeout(() => {
+            el.classList.remove('wrong-color-flash');
+          }, 3500);
+        });
+
+        return;
+      }
+    }
+
     setShowConfetti(true);
     setIsFinished(true);
 
@@ -135,6 +178,13 @@ const ColoringGame = () => {
           max-height: 100%;
           object-fit: contain;
         }
+        @keyframes flashError {
+          0%, 100% { stroke: #ef4444; stroke-width: 4px; stroke-dasharray: 4; }
+          50% { stroke: #ef4444; stroke-width: 8px; stroke-dasharray: 4; }
+        }
+        .wrong-color-flash {
+          animation: flashError 0.6s ease-in-out infinite !important;
+        }
       `}</style>
       {/* Dynamic Background */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
@@ -177,6 +227,22 @@ const ColoringGame = () => {
           </div>
         </div>
 
+        <AnimatePresence>
+          {validationError && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-red-100 border-2 border-red-400 text-red-700 px-4 py-2 sm:px-6 sm:py-3 rounded-2xl mx-auto mb-2 font-bold shadow-md flex items-center justify-between gap-4 max-w-lg z-20 absolute top-20 left-1/2 -translate-x-1/2"
+            >
+              <span>{validationError}</span>
+              <button onClick={() => setValidationError('')} className="text-red-700 hover:text-red-900">
+                ✕
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-2 md:gap-4 overflow-hidden pb-2 px-1">
 
           {/* Main Canvas */}
@@ -205,13 +271,14 @@ const ColoringGame = () => {
             {/* Color Palette */}
             <div className="glass-panel p-2 border-white/60 relative flex-1 lg:flex-none">
               <h3 className="font-black font-baloo text-kid-primary-dark mb-2 text-center text-lg sm:text-xl drop-shadow-sm">Colors</h3>
-              <div className="grid grid-cols-5 lg:grid-cols-4 gap-2 justify-items-center relative z-10">
+              <div className="grid grid-cols-7 sm:grid-cols-9 md:grid-cols-11 lg:grid-cols-5 gap-1.5 justify-items-center relative z-10">
                 {COLORS.map(color => (
                   <button
                     key={color}
                     onClick={() => setCurrentColor(color)}
-                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full transition-all duration-300 ${currentColor === color ? 'scale-125 z-10 border-2 sm:border-4 border-white shadow-[0_8px_16px_rgba(0,0,0,0.2)]' : 'scale-100 border-2 border-white/60 shadow-[0_4px_8px_rgba(0,0,0,0.1)] hover:scale-110 hover:border-white'}`}
+                    className={`w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-full transition-all duration-300 ${currentColor === color ? 'scale-125 z-10 border-2 sm:border-4 border-white shadow-[0_4px_12px_rgba(0,0,0,0.3)]' : 'scale-100 border-2 border-white/60 shadow-[0_2px_4px_rgba(0,0,0,0.1)] hover:scale-110 hover:border-white'}`}
                     style={{ backgroundColor: color }}
+                    title={color}
                   />
                 ))}
               </div>
