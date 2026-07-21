@@ -91,15 +91,56 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
+  const logout = async () => {
+    try {
+      if (token) {
+        await fetch(`${API_BASE_URL}/user/logout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Logout API error:', error);
+    } finally {
+      setUser(null);
+      setToken(null);
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+    }
+  };
+
+  const updateProfile = async (profileData) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(profileData),
+      });
+      const resData = await response.json();
+      
+      if (response.ok && resData.data && resData.data.status === 200) {
+        const updatedUser = resData.data.result.user;
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        return { success: true };
+      } else {
+        const errorMessage = resData.errors && resData.errors.length > 0 ? resData.errors[0].description || resData.errors[0].message : 'Update failed';
+        return { success: false, message: errorMessage };
+      }
+    } catch (error) {
+      console.error('Profile update error:', error);
+      return { success: false, message: 'An error occurred during profile update.' };
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, googleLogin }}>
+    <AuthContext.Provider value={{ user, token, login, register, logout, googleLogin, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

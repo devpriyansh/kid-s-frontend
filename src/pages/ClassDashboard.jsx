@@ -407,15 +407,26 @@ const ClassDashboard = () => {
         <Mascot className="w-24 h-24 animate-float" />
       </div>
 
-      {/* AI Voice Tutor FAB (Mobile friendly) */}
-      <motion.button
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        onClick={() => navigate('/ai-tutor')}
-        className="fixed bottom-6 left-6 z-50 bg-white/80 backdrop-blur-md border border-kid-primary/40 rounded-full p-4 shadow-[0_8px_20px_rgba(96,165,250,0.3),inset_0_2px_4px_rgba(255,255,255,0.8)] flex items-center justify-center text-kid-primary-dark hover:bg-white transition-colors"
-      >
-        <Bot size={36} strokeWidth={2.5} />
-      </motion.button>
+      {/* AI Voice Tutor FAB (Highlighted) */}
+      <div className="fixed bottom-6 left-6 z-50 flex items-center">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate('/ai-tutor')}
+          className="relative bg-gradient-to-r from-kid-primary to-kid-purple text-white border-2 border-white rounded-full px-5 py-3 shadow-[0_8px_25px_rgba(79,70,229,0.5),inset_0_2px_4px_rgba(255,255,255,0.4)] flex items-center justify-center gap-3 hover:shadow-[0_12px_30px_rgba(79,70,229,0.6)] transition-all group"
+        >
+          {/* Glowing pulse ring */}
+          <div className="absolute inset-0 rounded-full border-[3px] border-kid-primary/50 animate-ping" style={{ animationDuration: '3s' }}></div>
+          
+          <Bot size={32} strokeWidth={2.5} className="relative z-10 drop-shadow-md group-hover:rotate-12 transition-transform duration-300" />
+          <span className="font-baloo font-bold text-xl relative z-10 drop-shadow-md pr-2">AI Tutor</span>
+          
+          {/* Floating 'New' badge */}
+          <div className="absolute -top-3 -right-3 bg-kid-yellow-dark text-white text-xs font-black px-2 py-1 rounded-full shadow-md transform rotate-12 animate-pulse">
+            NEW!
+          </div>
+        </motion.button>
+      </div>
     </motion.div>
   );
 };

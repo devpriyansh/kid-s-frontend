@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useKid } from '../../contexts/KidContext';
 import { useClass } from '../../contexts/ClassContext';
-import { Home, Users, Gamepad2, TrendingUp, Trophy, Sparkles } from 'lucide-react';
+import { Home, Users, Gamepad2, TrendingUp, Trophy, Sparkles, Settings } from 'lucide-react';
 
 const Navbar = () => {
   const { user } = useAuth();
@@ -17,6 +17,7 @@ const Navbar = () => {
     { path: '/class-dashboard', label: 'Play', icon: Gamepad2 },
     { path: '/progress', label: 'Progress', icon: TrendingUp },
     { path: '/rewards', label: 'Rewards', icon: Trophy },
+    { path: '/profile-settings', label: 'Settings', icon: Settings },
   ];
 
   if (!user) return null;
