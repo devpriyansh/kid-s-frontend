@@ -38,7 +38,13 @@ const THEMES = {
   'Letter': ['🅰️', '🅱️', '🅾️', '🆎', '🔠', '🔡'],
   'Planet': ['🪐', '🌑', '🌕', '🌓', '☄️', '🌌'],
   'Appliance': ['📺', '💻', '📱', '📻', '📸', '☎️'],
-  'Fast Food': ['🍔', '🍕', '🌭', '🍟', '🌮', '🍿']
+  'Fast Food': ['🍔', '🍕', '🌭', '🍟', '🌮', '🍿'],
+  // 5 New Themes
+  'Dinosaur': ['🦖', '🦕', '🐊', '🦎', '🐍', '🐢'],
+  'Dessert': ['🧁', '🍰', '🍦', '🍩', '🍪', '🍫'],
+  'Magic': ['🪄', '🔮', '✨', '🎩', '🦄', '🧙‍♂️'],
+  'Camping': ['⛺', '🔥', '🌲', '🔦', '🧭', '🎒'],
+  'Halloween': ['🎃', '👻', '🦇', '🕷️', '🕸️', '🧛']
 };
 
 const MemoryGame = () => {
@@ -97,7 +103,8 @@ const MemoryGame = () => {
 
   const initializeGame = (title) => {
     let theme = THEMES['Animal']; // fallback
-    for (const [key, emojis] of Object.entries(THEMES)) {
+    const sortedEntries = Object.entries(THEMES).sort((a, b) => b[0].length - a[0].length);
+    for (const [key, emojis] of sortedEntries) {
       if (title.includes(key)) {
         theme = emojis;
         break;

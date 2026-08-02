@@ -111,6 +111,21 @@ const ColoringSelection = () => {
               )}
               Learning
             </button>
+            <button
+              onClick={() => setActiveTab('free')}
+              className={`relative px-4 sm:px-8 py-2 sm:py-3 rounded-full text-sm sm:text-lg font-bold font-baloo transition-colors z-10 ${
+                activeTab === 'free' ? 'text-white' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              {activeTab === 'free' && (
+                <motion.div
+                  layoutId="active-tab"
+                  className="absolute inset-0 bg-kid-yellow-dark rounded-full shadow-md z-[-1]"
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                />
+              )}
+              Free
+            </button>
           </div>
         </div>
 
@@ -154,7 +169,7 @@ const ColoringSelection = () => {
                     )}
                     <div 
                       className={`w-full aspect-square bg-white/60 rounded-2xl p-4 shadow-[inset_0_4px_12px_rgba(0,0,0,0.05)] border-[3px] border-white/80 mb-6 pointer-events-none ${isLocked ? 'blur-[1px]' : ''}`}
-                      dangerouslySetInnerHTML={{ __html: page.referenceSvgContent }} 
+                      dangerouslySetInnerHTML={{ __html: page.referenceSvgContent || page.svgContent }} 
                     />
                     <h3 className="text-2xl font-black font-baloo text-kid-primary-dark drop-shadow-sm">{page.title}</h3>
                   </motion.div>

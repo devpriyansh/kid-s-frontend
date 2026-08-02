@@ -1341,4 +1341,185 @@ export const coloringPages = [
       </svg>
     `
   }
+,
+  {
+    id: 60,
+    category: "free",
+    title: "Cute Dinosaur",
+    svgContent: `
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" stroke="black" stroke-width="3" fill="white" stroke-linejoin="round">
+        <path d="M20 80 Q20 40 50 20 Q70 20 80 40 Q90 60 70 80 Q50 90 20 80" id="path-1" />
+        <path d="M30 30 Q40 30 40 40 Q30 40 30 30" id="path-2" />
+      </svg>
+    `
+  },
+  {
+    id: 61,
+    category: "free",
+    title: "Robot Friend",
+    svgContent: `
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" stroke="black" stroke-width="3" fill="white" stroke-linejoin="round">
+        <path d="M20 20 H80 V80 H20 Z" id="path-1" />
+        <path d="M30 30 H40 V40 H30 Z" id="path-2" />
+        <path d="M60 30 H70 V40 H60 Z" id="path-3" />
+        <path d="M40 60 H60 V70 H40 Z" id="path-4" />
+      </svg>
+    `
+  },
+  {
+    id: 62,
+    category: "free",
+    title: "Ice Cream Cone",
+    svgContent: `
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" stroke="black" stroke-width="3" fill="white" stroke-linejoin="round">
+        <path d="M30 40 L50 90 L70 40 Z" id="path-1" />
+        <path d="M20 40 C 20 10, 80 10, 80 40 Z" id="path-2" />
+      </svg>
+    `
+  },
+  {
+    id: 63,
+    category: "free",
+    title: "Space Rocket",
+    svgContent: `
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" stroke="black" stroke-width="3" fill="white" stroke-linejoin="round">
+        <path d="M40 80 L50 20 L60 80 Z" id="path-1" />
+        <path d="M30 80 L40 60 L40 80 Z" id="path-2" />
+        <path d="M70 80 L60 60 L60 80 Z" id="path-3" />
+        <path d="M45 40 A5 5 0 1 0 55 40 A5 5 0 1 0 45 40" id="path-4" />
+      </svg>
+    `
+  },
+  {
+    id: 64,
+    category: "free",
+    title: "Magic Wand",
+    svgContent: `
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" stroke="black" stroke-width="3" fill="white" stroke-linejoin="round">
+        <path d="M20 80 L80 20 L90 30 L30 90 Z" id="path-1" />
+        <path d="M70 10 L80 0 L90 10 L80 20 Z" id="path-2" />
+      </svg>
+    `
+  },
+  {
+    id: 65,
+    category: "free",
+    title: "Happy Frog",
+    svgContent: `
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" stroke="black" stroke-width="3" fill="white" stroke-linejoin="round">
+        <path d="M20 50 C 20 20, 80 20, 80 50 C 80 80, 20 80, 20 50" id="path-1" />
+        <path d="M30 30 A10 10 0 1 0 50 30 A10 10 0 1 0 30 30" id="path-2" />
+        <path d="M60 30 A10 10 0 1 0 80 30 A10 10 0 1 0 60 30" id="path-3" />
+      </svg>
+    `
+  },
+  {
+    id: 66,
+    category: "free",
+    title: "Little Chick",
+    svgContent: `
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" stroke="black" stroke-width="3" fill="white" stroke-linejoin="round">
+        <path d="M30 60 C 30 20, 70 20, 70 60 C 70 90, 30 90, 30 60" id="path-1" />
+        <path d="M40 40 A5 5 0 1 0 50 40 A5 5 0 1 0 40 40" id="path-2" />
+        <path d="M60 40 A5 5 0 1 0 70 40 A5 5 0 1 0 60 40" id="path-3" />
+        <path d="M45 55 L55 55 L50 65 Z" id="path-4" />
+      </svg>
+    `
+  },
+  {
+    id: 67,
+    category: "free",
+    title: "Sweet Candy",
+    svgContent: `
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" stroke="black" stroke-width="3" fill="white" stroke-linejoin="round">
+        <path d="M30 40 L70 40 L70 60 L30 60 Z" id="path-1" />
+        <path d="M10 30 L30 40 L30 60 L10 70 Z" id="path-2" />
+        <path d="M90 30 L70 40 L70 60 L90 70 Z" id="path-3" />
+      </svg>
+    `
+  },
+  {
+    id: 68,
+    category: "free",
+    title: "Toy Train",
+    svgContent: `
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" stroke="black" stroke-width="3" fill="white" stroke-linejoin="round">
+        <path d="M20 40 H80 V80 H20 Z" id="path-1" />
+        <path d="M60 20 H80 V40 H60 Z" id="path-2" />
+        <path d="M30 80 A10 10 0 1 0 50 80 A10 10 0 1 0 30 80" id="path-3" />
+        <path d="M60 80 A10 10 0 1 0 80 80 A10 10 0 1 0 60 80" id="path-4" />
+      </svg>
+    `
+  },
+  {
+    id: 69,
+    category: "free",
+    title: "Party Balloon",
+    svgContent: `
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" stroke="black" stroke-width="3" fill="white" stroke-linejoin="round">
+        <path d="M30 30 C 30 0, 70 0, 70 30 C 70 70, 50 80, 50 80 C 50 80, 30 70, 30 30" id="path-1" />
+        <path d="M45 80 L55 80 L50 90 Z" id="path-2" />
+      </svg>
+    `
+  },
+  {
+    id: 70,
+    category: "free",
+    title: "Cute Cat",
+    svgContent: `
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" stroke="black" stroke-width="3" fill="white" stroke-linejoin="round">
+        <path d="M30 50 C 30 20, 70 20, 70 50 C 70 80, 30 80, 30 50" id="path-1" />
+        <path d="M20 20 L40 30 L30 50 Z" id="path-2" />
+        <path d="M80 20 L60 30 L70 50 Z" id="path-3" />
+        <path d="M40 40 A5 5 0 1 0 50 40 A5 5 0 1 0 40 40" id="path-4" />
+        <path d="M60 40 A5 5 0 1 0 70 40 A5 5 0 1 0 60 40" id="path-5" />
+      </svg>
+    `
+  },
+  {
+    id: 71,
+    category: "free",
+    title: "Fluffy Dog",
+    svgContent: `
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" stroke="black" stroke-width="3" fill="white" stroke-linejoin="round">
+        <path d="M30 50 C 30 20, 70 20, 70 50 C 70 80, 30 80, 30 50" id="path-1" />
+        <path d="M10 40 C 10 20, 30 30, 30 50 C 30 70, 10 60, 10 40" id="path-2" />
+        <path d="M90 40 C 90 20, 70 30, 70 50 C 70 70, 90 60, 90 40" id="path-3" />
+        <path d="M40 45 A5 5 0 1 0 50 45 A5 5 0 1 0 40 45" id="path-4" />
+        <path d="M60 45 A5 5 0 1 0 70 45 A5 5 0 1 0 60 45" id="path-5" />
+      </svg>
+    `
+  },
+  {
+    id: 72,
+    category: "free",
+    title: "Shiny Crown",
+    svgContent: `
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" stroke="black" stroke-width="3" fill="white" stroke-linejoin="round">
+        <path d="M20 80 L80 80 L90 30 L70 50 L50 20 L30 50 L10 30 Z" id="path-1" />
+      </svg>
+    `
+  },
+  {
+    id: 73,
+    category: "free",
+    title: "Bouncing Ball",
+    svgContent: `
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" stroke="black" stroke-width="3" fill="white" stroke-linejoin="round">
+        <path d="M20 50 A30 30 0 1 0 80 50 A30 30 0 1 0 20 50" id="path-1" />
+        <path d="M40 30 L60 30 L70 50 L60 70 L40 70 L30 50 Z" id="path-2" />
+      </svg>
+    `
+  },
+  {
+    id: 74,
+    category: "free",
+    title: "Magic Potion",
+    svgContent: `
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" stroke="black" stroke-width="3" fill="white" stroke-linejoin="round">
+        <path d="M40 20 H60 V40 L80 80 H20 L40 40 Z" id="path-1" />
+        <path d="M30 80 L70 80 L60 60 L40 60 Z" id="path-2" />
+      </svg>
+    `
+  },
 ];

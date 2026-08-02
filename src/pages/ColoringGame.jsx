@@ -170,7 +170,7 @@ const ColoringGame = () => {
 
   return (
     <div className="absolute inset-0 z-[100] bg-kid-bg flex flex-col items-center justify-center overflow-hidden">
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .svg-coloring-container svg {
           width: 100%;
           height: 100%;
@@ -185,7 +185,7 @@ const ColoringGame = () => {
         .wrong-color-flash {
           animation: flashError 0.6s ease-in-out infinite !important;
         }
-      `}</style>
+      `}} />
       {/* Dynamic Background */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <motion.div

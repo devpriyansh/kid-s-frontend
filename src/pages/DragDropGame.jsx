@@ -93,6 +93,46 @@ const THEME_DATA = {
   'Category': {
     draggables: [ { id: 'f1', content: '🍎' }, { id: 'v1', content: '🚗' }, { id: 'f2', content: '🍌' }, { id: 'v2', content: '✈️' } ],
     targets: [ { id: 'f1', content: 'Fruits 🧺' }, { id: 'v1', content: 'Vehicles 🅿️' }, { id: 'f2', content: 'Fruits 🧺' }, { id: 'v2', content: 'Vehicles 🅿️' } ]
+  },
+  'Opposites': {
+    draggables: [ { id: 'hot', content: '🔥' }, { id: 'cold', content: '🧊' }, { id: 'day', content: '☀️' }, { id: 'night', content: '🌙' } ],
+    targets: [ { id: 'hot', content: 'Hot' }, { id: 'cold', content: 'Cold' }, { id: 'day', content: 'Day' }, { id: 'night', content: 'Night' } ]
+  },
+  'Animal Sound': {
+    draggables: [ { id: 'cow', content: '🐮' }, { id: 'dog', content: '🐶' }, { id: 'cat', content: '🐱' }, { id: 'pig', content: '🐷' } ],
+    targets: [ { id: 'cow', content: 'Moo' }, { id: 'dog', content: 'Bark' }, { id: 'cat', content: 'Meow' }, { id: 'pig', content: 'Oink' } ]
+  },
+  'Season': {
+    draggables: [ { id: 'win', content: '⛄' }, { id: 'sum', content: '☀️' }, { id: 'aut', content: '🍂' }, { id: 'spr', content: '🌸' } ],
+    targets: [ { id: 'win', content: 'Winter' }, { id: 'sum', content: 'Summer' }, { id: 'aut', content: 'Autumn' }, { id: 'spr', content: 'Spring' } ]
+  },
+  'Occupation': {
+    draggables: [ { id: 'doc', content: '🩺' }, { id: 'teach', content: '🍎' }, { id: 'chef', content: '🍳' }, { id: 'pol', content: '🚓' } ],
+    targets: [ { id: 'doc', content: 'Doctor' }, { id: 'teach', content: 'Teacher' }, { id: 'chef', content: 'Chef' }, { id: 'pol', content: 'Police' } ]
+  },
+  'Solar System': {
+    draggables: [ { id: 'ear', content: '🌍' }, { id: 'sat', content: '🪐' }, { id: 'sun', content: '☀️' }, { id: 'moon', content: '🌙' } ],
+    targets: [ { id: 'ear', content: 'Earth' }, { id: 'sat', content: 'Saturn' }, { id: 'sun', content: 'Sun' }, { id: 'moon', content: 'Moon' } ]
+  },
+  'Tool': {
+    draggables: [ { id: 'ham', content: '🔨' }, { id: 'wren', content: '🔧' }, { id: 'pen', content: '✏️' }, { id: 'sci', content: '✂️' } ],
+    targets: [ { id: 'ham', content: 'Hammer' }, { id: 'wren', content: 'Wrench' }, { id: 'pen', content: 'Pencil' }, { id: 'sci', content: 'Scissors' } ]
+  },
+  'Transport': {
+    draggables: [ { id: 'car', content: '🚗' }, { id: 'boat', content: '⛵' }, { id: 'plane', content: '✈️' }, { id: 'train', content: '🚂' } ],
+    targets: [ { id: 'car', content: 'Road' }, { id: 'boat', content: 'Water' }, { id: 'plane', content: 'Sky' }, { id: 'train', content: 'Tracks' } ]
+  },
+  'Baby Animal': {
+    draggables: [ { id: 'pup', content: '🐶' }, { id: 'kit', content: '🐱' }, { id: 'calf', content: '🐮' }, { id: 'lamb', content: '🐑' } ],
+    targets: [ { id: 'pup', content: 'Puppy' }, { id: 'kit', content: 'Kitten' }, { id: 'calf', content: 'Calf' }, { id: 'lamb', content: 'Lamb' } ]
+  },
+  'Rhyming Word': {
+    draggables: [ { id: 'cat', content: '🐱 Cat' }, { id: 'sun', content: '☀️ Sun' }, { id: 'pig', content: '🐷 Pig' }, { id: 'fox', content: '🦊 Fox' } ],
+    targets: [ { id: 'cat', content: 'Bat' }, { id: 'sun', content: 'Bun' }, { id: 'pig', content: 'Wig' }, { id: 'fox', content: 'Box' } ]
+  },
+  'Healthy Habit': {
+    draggables: [ { id: 'brush', content: '🪥' }, { id: 'sleep', content: '🛌' }, { id: 'wash', content: '🧼' }, { id: 'eat', content: '🍎' } ],
+    targets: [ { id: 'brush', content: 'Brush Teeth' }, { id: 'sleep', content: 'Sleep Well' }, { id: 'wash', content: 'Wash Hands' }, { id: 'eat', content: 'Eat Healthy' } ]
   }
 };
 
@@ -152,7 +192,8 @@ const DragDropGame = () => {
 
   const initializeGame = (title) => {
     let themeKey = 'Color';
-    for (const key of Object.keys(THEME_DATA)) {
+    const sortedKeys = Object.keys(THEME_DATA).sort((a, b) => b.length - a.length);
+    for (const key of sortedKeys) {
       if (title.includes(key)) {
         themeKey = key;
         break;
@@ -193,7 +234,8 @@ const DragDropGame = () => {
     // E.g., 'Size' maps 'b' and 'b2' to 'Big Box'.
     // We check if the dragged item is supposed to go to this target by finding its target in the original THEME_DATA.
     let themeKey = 'Color';
-    for (const key of Object.keys(THEME_DATA)) {
+    const sortedKeys = Object.keys(THEME_DATA).sort((a, b) => b.length - a.length);
+    for (const key of sortedKeys) {
       if (quiz.title.includes(key)) { themeKey = key; break; }
     }
     
