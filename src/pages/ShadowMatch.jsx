@@ -79,7 +79,7 @@ const ShadowMatch = () => {
           if (found.class_level === 'kg2') r = 7;
           setRounds(r);
           generateRound();
-        } else navigate('/class-dashboard');
+        } else navigate(-1);
       } catch (err) {}
     };
     fetchQuiz();
@@ -160,7 +160,7 @@ const ShadowMatch = () => {
       </div>
 
       <button 
-        onClick={() => navigate('/class-dashboard')}
+        onClick={() => navigate(-1)}
         className="absolute top-4 left-4 z-[60] bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] font-bold text-slate-600 flex items-center gap-2 border-2 border-slate-200 hover:bg-white transition-colors"
       >
         ⬅️ <span className="hidden sm:inline">Back</span>
@@ -239,7 +239,7 @@ const ShadowMatch = () => {
             className="fixed bottom-4 left-1/2 transform -translate-x-1/2 glass-panel px-6 py-4 sm:px-10 sm:py-8 text-center z-50 flex flex-col md:flex-row gap-4 sm:gap-6 items-center shadow-2xl border-white/80 w-[90%] sm:w-auto max-w-md"
           >
             <span className="text-2xl sm:text-4xl font-black font-baloo gradient-text">Perfect Matcher!</span>
-            <button onClick={() => navigate('/class-dashboard')} className="btn-chunky py-2 px-6 sm:py-4 sm:px-8 text-xl sm:text-2xl bg-gradient-to-b from-kid-green to-kid-green-dark shadow-[0_4px_8px_rgba(110,231,183,0.3),inset_0_2px_4px_rgba(255,255,255,0.4)]">
+            <button onClick={() => navigate(-1)} className="btn-chunky py-2 px-6 sm:py-4 sm:px-8 text-xl sm:text-2xl bg-gradient-to-b from-kid-green to-kid-green-dark shadow-[0_4px_8px_rgba(110,231,183,0.3),inset_0_2px_4px_rgba(255,255,255,0.4)]">
               Dashboard
             </button>
           </motion.div>

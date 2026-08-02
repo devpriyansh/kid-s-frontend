@@ -39,6 +39,8 @@ const Progress = lazy(() => import('./pages/Progress'))
 const ProfileSettings = lazy(() => import('./pages/ProfileSettings'))
 const Rewards = lazy(() => import('./pages/Rewards'))
 const PublicPlayDashboard = lazy(() => import('./pages/PublicPlayDashboard'))
+const ModuleHub = lazy(() => import('./pages/ModuleHub'))
+const WordHub = lazy(() => import('./pages/WordHub'))
 
 function App() {
   return (
@@ -78,6 +80,8 @@ function App() {
                   <Route path="/rewards" element={<Rewards />} />
                   <Route path="/class-selection" element={<ClassSelection />} />
                   <Route path="/class-dashboard" element={<ClassDashboard />} />
+                  <Route path="/module/:moduleId" element={<ModuleHub />} />
+                  <Route path="/word-hub/:moduleId/:lessonIndex" element={<WordHub />} />
                   <Route path="/lesson/:moduleId/:lessonIndex" element={<LessonActivity />} />
                   <Route path="/quiz/:quizId" element={<QuizActivity />} />
                   <Route path="/sorting/:quizId" element={<RainbowSorting />} />

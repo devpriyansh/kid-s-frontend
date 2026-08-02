@@ -89,7 +89,7 @@ const PuzzleGame = () => {
           setQuiz(found);
           initializeGame(found);
         } else {
-          navigate('/class-dashboard');
+          navigate(-1);
         }
       } catch (err) {
         console.error("Error fetching quiz", err);
@@ -205,7 +205,7 @@ const PuzzleGame = () => {
       </div>
 
       <button 
-        onClick={() => navigate(selectedKid ? '/class-dashboard' : '/play')}
+        onClick={() => navigate(-1)}
         className="absolute top-4 left-4 z-[60] bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] font-bold text-slate-600 flex items-center gap-2 border-2 border-slate-200 hover:bg-white transition-colors"
       >
         ⬅️ <span className="hidden sm:inline">Back</span>
@@ -353,7 +353,7 @@ const PuzzleGame = () => {
                   </>
                 ) : (
                   <button 
-                    onClick={() => navigate('/class-dashboard')}
+                    onClick={() => navigate(-1)}
                     className="btn-chunky w-full text-xl sm:text-2xl py-4 sm:py-6 bg-gradient-to-b from-kid-green to-kid-green-dark shadow-[0_8px_16px_rgba(110,231,183,0.3),inset_0_4px_8px_rgba(255,255,255,0.4)]"
                   >
                     Back to Dashboard

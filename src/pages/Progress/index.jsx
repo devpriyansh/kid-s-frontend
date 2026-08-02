@@ -17,9 +17,10 @@ const Progress = () => {
   const overallProgress = React.useMemo(() => {
     if (!currentKid?.age) return { percentage: 0, completed: 0, total: 0 };
     const classData = getClass(currentKid.age);
-    if (!classData) return { percentage: 0, completed: 0, total: 0 };
+    if (!classData || !classData.subjects) return { percentage: 0, completed: 0, total: 0 };
 
-    const totalLessons = classData.modules.reduce((sum, mod) => sum + (mod.lessons?.length || 0), 0);
+    const allModules = Object.values(classData.subjects).flat();
+    const totalLessons = allModules.reduce((sum, mod) => sum + (mod.lessons?.length || 0), 0);
     if (totalLessons === 0) return { percentage: 0, completed: 0, total: 0 };
 
     const key = `progress_${currentKid.id}_${currentKid.age}`;
@@ -27,7 +28,7 @@ const Progress = () => {
     const progressData = stored ? JSON.parse(stored) : {};
 
     let completedLessons = 0;
-    classData.modules.forEach(mod => {
+    allModules.forEach(mod => {
       const modProg = progressData[mod.id];
       if (modProg && Array.isArray(modProg.completed)) {
         completedLessons += modProg.completed.length;

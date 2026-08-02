@@ -179,7 +179,7 @@ const QuizActivity = () => {
           </div>
         </div>
 
-        <button onClick={() => navigate('/class-dashboard')} className="btn-chunky text-xl sm:text-2xl px-8 py-3 sm:px-10 sm:py-4 bg-gradient-to-b from-kid-green to-kid-green-dark shadow-[0_8px_16px_rgba(110,231,183,0.3),inset_0_4px_8px_rgba(255,255,255,0.4)] mt-6 mx-auto">
+        <button onClick={() => navigate(-1)} className="btn-chunky text-xl sm:text-2xl px-8 py-3 sm:px-10 sm:py-4 bg-gradient-to-b from-kid-green to-kid-green-dark shadow-[0_8px_16px_rgba(110,231,183,0.3),inset_0_4px_8px_rgba(255,255,255,0.4)] mt-6 mx-auto">
           Back to Dashboard
         </button>
       </motion.div>
@@ -208,7 +208,7 @@ const QuizActivityWrapper = () => {
       </div>
 
       <button 
-        onClick={() => navigate('/class-dashboard')}
+        onClick={() => navigate(-1)}
         className="absolute top-4 left-4 z-[60] bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] font-bold text-slate-600 flex items-center gap-2 border-2 border-slate-200 hover:bg-white transition-colors"
       >
         ⬅️ <span className="hidden sm:inline">Back</span>

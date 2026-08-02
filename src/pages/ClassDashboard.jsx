@@ -100,15 +100,25 @@ const PremiumGameCard = ({ title, icon, colorClass, onClick, isImage = false, is
   );
 };
 
+let cachedQuizzes = null;
+
 const ClassDashboard = () => {
   const { selectedClass } = useClass();
   const { selectedKid } = useKid();
   const navigate = useNavigate();
   const { getModuleProgress } = useProgress();
   const { data: dashboardData } = useDashboard();
-  const [quizzes, setQuizzes] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('learning');
+  const [quizzes, setQuizzes] = useState(cachedQuizzes || []);
+  const [isLoading, setIsLoading] = useState(!cachedQuizzes);
+  const [activeTab, setActiveTabState] = useState(() => {
+    return sessionStorage.getItem('classDashboardTab') || 'learning';
+  });
+  const [subjectFilter, setSubjectFilter] = useState('english');
+
+  const setActiveTab = (tab) => {
+    sessionStorage.setItem('classDashboardTab', tab);
+    setActiveTabState(tab);
+  };
 
   const playedQuizIds = useMemo(() => {
     if (!dashboardData?.gameProgress) return new Set();
@@ -123,6 +133,7 @@ const ClassDashboard = () => {
     }
 
     const fetchQuizzes = async () => {
+      if (cachedQuizzes) return; // Skip if we already fetched in this session
       setIsLoading(true);
       try {
         const token = localStorage.getItem('token');
@@ -133,7 +144,8 @@ const ClassDashboard = () => {
         });
         const resData = await res.json();
         if (res.ok && resData.data?.result?.quizzes) {
-          setQuizzes(resData.data.result.quizzes);
+          cachedQuizzes = resData.data.result.quizzes;
+          setQuizzes(cachedQuizzes);
         }
       } catch (err) {
         console.error("Failed to fetch quizzes", err);
@@ -148,18 +160,21 @@ const ClassDashboard = () => {
   const classData = getClass(selectedClass);
 
   // Calculate overall progress
-  const totalLessons = useMemo(() => {
-    if (!classData) return 0;
-    return classData.modules.reduce((sum, mod) => sum + (mod.lessons?.length || 0), 0);
+  const allModules = useMemo(() => {
+    if (!classData || !classData.subjects) return [];
+    return Object.values(classData.subjects).flat();
   }, [classData]);
 
+  const totalLessons = useMemo(() => {
+    return allModules.reduce((sum, mod) => sum + (mod.lessons?.length || 0), 0);
+  }, [allModules]);
+
   const completedLessons = useMemo(() => {
-    if (!classData) return 0;
-    return classData.modules.reduce((sum, mod) => {
+    return allModules.reduce((sum, mod) => {
       const prog = getModuleProgress(mod.id, mod.lessons?.length || 0);
       return sum + prog.completed;
     }, 0);
-  }, [classData, getModuleProgress]);
+  }, [allModules, getModuleProgress]);
 
   const totalStars = useMemo(() => {
     return selectedKid?.stars || 0;
@@ -254,25 +269,44 @@ const ClassDashboard = () => {
           >
             {/* Learning Modules */}
             {activeTab === 'learning' && (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 px-2 pt-4">
-                {isLoading ? (
-                  [...Array(10)].map((_, i) => <CardSkeleton key={i} />)
-                ) : (
-                  classData.modules.map((module) => {
-                    const total = module.lessons?.length || 0;
-                    const prog = getModuleProgress(module.id, total);
-                    return (
-                      <ModuleCard
-                        key={module.id}
-                        module={module}
-                        progress={prog}
-                        onSelect={() => {
-                          if (total > 0) navigate(`/lesson/${module.id}/0`);
-                        }}
-                      />
-                    );
-                  })
-                )}
+              <div className="flex flex-col gap-4 px-2 pt-4">
+                {/* Subject Filters */}
+                <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
+                  {Object.keys(classData.subjects || {}).map(subject => (
+                    <button
+                      key={subject}
+                      onClick={() => setSubjectFilter(subject)}
+                      className={`px-6 py-2 rounded-xl font-baloo font-bold text-lg capitalize transition-all border-2 ${
+                        subjectFilter === subject
+                          ? 'bg-kid-primary text-white border-kid-primary shadow-md'
+                          : 'bg-white text-slate-500 border-slate-200 hover:border-kid-primary/50'
+                      }`}
+                    >
+                      {subject}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+                  {isLoading ? (
+                    [...Array(10)].map((_, i) => <CardSkeleton key={i} />)
+                  ) : (
+                    (classData.subjects?.[subjectFilter] || []).map((module) => {
+                      const total = module.lessons?.length || 0;
+                      const prog = getModuleProgress(module.id, total);
+                      return (
+                        <ModuleCard
+                          key={module.id}
+                          module={module}
+                          progress={prog}
+                          onSelect={() => {
+                            if (total > 0) navigate(`/module/${module.id}`);
+                          }}
+                        />
+                      );
+                    })
+                  )}
+                </div>
               </div>
             )}
 
